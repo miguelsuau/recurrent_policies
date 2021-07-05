@@ -36,7 +36,8 @@ class Agent(object):
 
         with torch.no_grad():
             obs = torch.FloatTensor(obs).unsqueeze(1)
-            return self.policy(obs)
+            action, value, log_prob, hidden_memory = self.policy(obs)
+            return action.flatten(), value, log_prob, hidden_memory
 
     def add_to_memory(
         self, prev_obs, action, reward, done, value, 
@@ -95,8 +96,6 @@ class Agent(object):
                 mb_policy_loss, mb_value_loss = self._update_policy(batch)
                 policy_loss += mb_policy_loss
                 value_loss += mb_value_loss
-        print(policy_loss)
-        print(value_loss)
         self.buffer.empty()
 
 

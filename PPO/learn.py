@@ -16,7 +16,7 @@ def learn(env, agent, total_steps, total_rollout_steps, gamma, lambd):
         while rollout_step < total_rollout_steps:
 
             action, value, log_prob, hidden_memory = agent.choose_action(obs)
-            new_obs, reward, done, info = env.step(action.flatten())
+            new_obs, reward, done, info = env.step(action)
             agent.add_to_memory(obs, action, reward, done, value, log_prob, hidden_memory)
             obs = new_obs
             rollout_step += 1

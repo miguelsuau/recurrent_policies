@@ -1,12 +1,9 @@
 import sys
 sys.path.append("..") 
-from PPO.policy import GRUPolicy
-from PPO.buffer import Buffer
+from recurrent_policies.PPO.buffer import Buffer
 import numpy as np
 import torch
-from torch import nn 
 from torch.nn import functional as F
-
 
 class Agent(object):
     """

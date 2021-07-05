@@ -1,0 +1,71 @@
+import numpy as np
+import random
+
+class Buffer(dict):
+    
+
+    def __init__(self, memory_size):
+        
+        self.memory_size = memory_size
+        
+
+    def __getitem__(self, key):
+        if key not in self.keys():
+            self[key] = list()
+        return super(Buffer, self).__getitem__(key)
+
+    @property
+    def is_full(self):
+        """
+        Check whether buffer is full.
+        """
+        if 'returns' not in self.keys():
+            return False
+        else:
+            return len(self['returns']) >= self.memory_size
+
+    def empty(self):
+        for key in self.keys():
+            self[key] = []
+
+    def sample(self, b, batch_size, seq_len, keys=None):
+        """
+        """
+        batch = {}
+        n_sequences = batch_size // seq_len
+        if keys is None:
+            keys = self.keys()
+        for key in keys:
+            batch[key] = []
+            for s in range(n_sequences):
+                start = s*seq_len + b*batch_size
+                end = (s+1)*seq_len + b*batch_size
+                batch[key].append(self[key][start:end])
+            # permut dimensions workers-seq to mantain sequence order
+            axis = np.arange(np.array(batch[key]).ndim)
+            axis[1], axis[2] = axis[2], axis[1]
+            batch[key] = np.transpose(batch[key], axis)
+        return batch
+
+    def shuffle(self, seq_len):
+        """
+        """
+        n = len(self['returns'])
+        # Only include complete sequences
+        indices = np.arange(0, n - n % seq_len, seq_len)
+        random.shuffle(indices)
+        for key in self.keys():
+            shuffled_memory = []
+            for i in indices:
+                shuffled_memory.extend(self[key][i:i+seq_len])
+            self[key] = shuffled_memory
+
+    def get_last_entries(self, t, keys=None):
+        """
+        """
+        if keys is None:
+            keys = self.keys()
+        batch = {}
+        for key in keys:
+            batch[key] = self[key][-t:]
+        return batch

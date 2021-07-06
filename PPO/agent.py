@@ -4,6 +4,7 @@ from recurrent_policies.PPO.buffer import Buffer
 import numpy as np
 import torch
 from torch.nn import functional as F
+from utils import LinearSchedule
 
 class Agent(object):
     """
@@ -17,6 +18,7 @@ class Agent(object):
         seq_len = 8,
         num_epoch = 4,
         learning_rate = 2.5e-4,
+        total_steps = 2.0e6
         ):
 
         self.memory_size = memory_size
@@ -26,11 +28,14 @@ class Agent(object):
         self.recurrent_policy = True
         self.policy = policy
         self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=learning_rate)
+        self.lr_schedule = LinearSchedule(self.optimizer, total_steps, learning_rate)
         self.buffer = Buffer(memory_size)
+        self.step = 0
         
 
     def choose_action(self, obs):
 
+        self.step += 1
         with torch.no_grad():
             obs = torch.FloatTensor(obs).unsqueeze(1)
             action, value, log_prob, hidden_memory = self.policy(obs)
@@ -83,6 +88,7 @@ class Agent(object):
         Runs multiple epoch of mini-batch gradient descent to
         update the model using experiences stored in buffer.
         """
+        self.lr_schedule.update_learning_rate(self.step)
         policy_loss = 0
         value_loss = 0
         n_batches = self.memory_size // self.batch_size

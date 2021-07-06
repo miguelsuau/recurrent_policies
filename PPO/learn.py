@@ -4,11 +4,24 @@ import os
 import yaml
 
 
+def print_results(episode_return, episode_step, global_step, episode, total_steps):
+        """
+        Prints results to the screen.
+        """
+        print(("Train step {} of {}".format(global_step, total_steps)))
+        print(("-"*30))
+        print(("Episode {} ended after {} steps.".format(episode,
+                                                         episode_step)))
+        print(("- Total reward: {}".format(episode_return)))
+        print(("-"*30))
+
 def learn(env, agent, total_steps, total_rollout_steps, gamma, lambd):
 
     obs = env.reset()
     step = 0
     episode_reward = 0
+    episode_step = 0
+    episode = 1
 
     while step < total_steps:
 
@@ -21,10 +34,13 @@ def learn(env, agent, total_steps, total_rollout_steps, gamma, lambd):
             obs = new_obs
             rollout_step += 1
             step += 1
+            episode_step += 1
             episode_reward += np.mean(reward)
             if done[0]:
-                print(episode_reward)
+                print_results(episode_reward, episode_step, step, episode, total_steps)
                 episode_reward = 0
+                episode_step = 0
+                episode += 1
         
         agent.bootstrap(obs, total_rollout_steps, gamma, lambd)
 

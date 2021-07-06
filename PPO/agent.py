@@ -1,10 +1,10 @@
 import sys
 sys.path.append("..") 
-from recurrent_policies.PPO.buffer import Buffer
+from PPO.buffer import Buffer
 import numpy as np
 import torch
 from torch.nn import functional as F
-from recurrent_policies.PPO.utils import LinearSchedule
+from PPO.utils import LinearSchedule, LRLinearSchedule
 
 class Agent(object):
     """
@@ -18,7 +18,9 @@ class Agent(object):
         seq_len = 8,
         num_epoch = 4,
         learning_rate = 2.5e-4,
-        total_steps = 2.0e6
+        total_steps = 2.0e6,
+        clip_range = 0.2,
+        entropy_coef = 1.0e-3
         ):
 
         self.memory_size = memory_size
@@ -28,7 +30,9 @@ class Agent(object):
         self.recurrent_policy = True
         self.policy = policy
         self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=learning_rate)
-        self.lr_schedule = LinearSchedule(self.optimizer, total_steps, learning_rate)
+        self.lr_schedule = LRLinearSchedule(self.optimizer, total_steps, learning_rate)
+        self.clip_schedule = LinearSchedule(total_steps, clip_range, 1.0e-5)
+        self.entropy_schedule = LinearSchedule(total_steps, entropy_coef, entropy_coef)
         self.buffer = Buffer(memory_size)
         self.step = 0
         
@@ -89,6 +93,8 @@ class Agent(object):
         update the model using experiences stored in buffer.
         """
         self.lr_schedule.update_learning_rate(self.step)
+        clip_range = self.clip_schedule.update(self.step)
+        entropy_coef = self.entropy_schedule.update(self.step)
         policy_loss = 0
         value_loss = 0
         n_batches = self.memory_size // self.batch_size
@@ -96,7 +102,7 @@ class Agent(object):
             self.buffer.shuffle(self.seq_len)
             for b in range(n_batches):
                 batch = self.buffer.sample(b, self.batch_size, self.seq_len)
-                mb_policy_loss, mb_value_loss = self._update_policy(batch)
+                mb_policy_loss, mb_value_loss = self._update_policy(batch, clip_range, entropy_coef)
                 policy_loss += mb_policy_loss
                 value_loss += mb_value_loss
         self.buffer.empty()

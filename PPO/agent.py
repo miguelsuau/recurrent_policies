@@ -4,7 +4,7 @@ from recurrent_policies.PPO.buffer import Buffer
 import numpy as np
 import torch
 from torch.nn import functional as F
-from utils import LinearSchedule
+from recurrent_policies.utils import LinearSchedule
 
 class Agent(object):
     """

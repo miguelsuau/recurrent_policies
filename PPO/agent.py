@@ -1,10 +1,10 @@
 import sys
 sys.path.append("..") 
-from PPO.buffer import Buffer
+from recurrent_policies.PPO.buffer import Buffer
 import numpy as np
 import torch
 from torch.nn import functional as F
-from PPO.utils import LinearSchedule, LRLinearSchedule
+from recurrent_policies.PPO.utils import LinearSchedule, LRLinearSchedule
 
 class Agent(object):
     """

@@ -27,7 +27,7 @@ class Agent(object):
         self.batch_size = batch_size
         self.seq_len = seq_len
         self.num_epoch = num_epoch
-        self.recurrent_policy = True
+        self.recurrent_policy = policy.recurrent
         self.policy = policy
         self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=learning_rate)
         self.lr_schedule = LRLinearSchedule(self.optimizer, total_steps, learning_rate)
@@ -83,9 +83,10 @@ class Agent(object):
         self.buffer['returns'].extend(returns)
 
     def reset_hidden_memory(self, done):
-        for worker, done in enumerate(done):
-            if done:
-                self.policy.reset_hidden_memory(worker)
+        if self.recurrent_policy:
+            for worker, done in enumerate(done):
+                if done:
+                    self.policy.reset_hidden_memory(worker)
 
     def update(self):
         """
@@ -106,12 +107,6 @@ class Agent(object):
                 policy_loss += mb_policy_loss
                 value_loss += mb_value_loss
         self.buffer.empty()
-
-    def reset_hidden_memory(self, dones):
-        for worker, done in enumerate(dones):
-            if done:
-                self.policy.reset_hidden_memory(worker)
-
 
     ######################### Private Functions ###########################
 
@@ -141,7 +136,10 @@ class Agent(object):
         
         obs = torch.FloatTensor(batch['obs']).flatten(end_dim=1)
         actions = torch.FloatTensor(batch['actions']).flatten(end_dim=1)
-        old_hidden_memories = torch.FloatTensor(batch['hidden_memories']).flatten(end_dim=1)[:, 0].unsqueeze(0)
+        if self.recurrent_policy:
+            old_hidden_memories = torch.FloatTensor(batch['hidden_memories']).flatten(end_dim=1)[:, 0].unsqueeze(0)
+        else:
+            old_hidden_memories = None
         values, log_prob, entropy = self.policy.evaluate_action(
             obs, actions, old_hidden_memories
             )

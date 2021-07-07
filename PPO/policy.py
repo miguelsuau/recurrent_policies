@@ -27,6 +27,7 @@ class GRUPolicy(nn.Module):
     def __init__(self, obs_size, action_size, num_workers):
         super(GRUPolicy, self).__init__()
         self.num_workers = num_workers
+        self.recurrent = True
         if isinstance(obs_size, list):
             self.cnn = CNN(obs_size)
             self.image = True
@@ -103,6 +104,7 @@ class ModifiedGRUPolicy(nn.Module):
     def __init__(self, obs_size, action_size, num_workers):
         super(ModifiedGRUPolicy, self).__init__()
         self.num_workers = num_workers
+        self.recurrent = True
         if isinstance(obs_size, list):
             self.cnn = CNN(obs_size)
             self.image = True
@@ -187,6 +189,7 @@ class FNNPolicy(nn.Module):
     def __init__(self, obs_size, action_size, num_workers):
         super(FNNPolicy, self).__init__()
         self.num_workers = num_workers
+        self.recurrent = False
         if isinstance(obs_size, list):
             self.cnn = CNN(obs_size)
             self.image = True
@@ -249,10 +252,3 @@ class FNNPolicy(nn.Module):
         value = self.critic(out)
         
         return value
-
-    def reset_hidden_memory(self, worker):
-        
-        self.hidden_memory[:, worker] = torch.zeros(
-            1, 1, self.hidden_memory_size
-            )
-        

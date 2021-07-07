@@ -91,7 +91,7 @@ class GRUPolicy(nn.Module):
         value = self.critic(hidden_memory)
         return value
 
-    def _reset_hidden_memory(self, worker):
+    def reset_hidden_memory(self, worker):
         
         self.hidden_memory[:, worker] = torch.zeros(
             1, 1, self.hidden_memory_size
@@ -176,10 +176,83 @@ class ModifiedGRUPolicy(nn.Module):
         value = self.critic(out)
         return value
 
-
-
-    def _reset_hidden_memory(self, worker):
+    def reset_hidden_memory(self, worker):
         
         self.hidden_memory[:, worker] = torch.zeros(
             1, 1, self.hidden_memory_size
             )
+
+class FNNPolicy(nn.Module):
+
+    def __init__(self, obs_size, action_size, num_workers):
+        super(FNNPolicy, self).__init__()
+        self.num_workers = num_workers
+        if isinstance(obs_size, list):
+            self.cnn = CNN(obs_size)
+            self.image = True
+        else:
+            self.fnn = nn.Sequential(
+                nn.Linear(obs_size, HIDDEN_SIZE),
+                nn.ReLU()
+                )
+            self.image = False
+        self.fnn2 = nn.Sequential(
+            nn.Linear(HIDDEN_SIZE, HIDDEN_MEMORY_SIZE),
+            nn.ReLU()
+            )
+        self.actor = nn.Linear(HIDDEN_MEMORY_SIZE, action_size)
+        self.critic = nn.Linear(HIDDEN_MEMORY_SIZE, 1)
+
+    def forward(self, obs):
+
+        if self.image:
+            feature_vector = self.cnn(obs)
+        else:
+            feature_vector = self.fnn(obs)
+
+        out = self.fnn2(feature_vector)
+
+        logits = self.actor(out)
+        action_dist = Categorical(logits=logits)
+        action = action_dist.sample()
+        log_prob = action_dist.log_prob(action)
+
+        value = self.critic(out)
+
+        return action, value, log_prob, None
+
+    def evaluate_action(self, obs, action, hidden_memory):
+        
+        if self.image:
+            feature_vector = self.cnn(obs)
+        else:
+            feature_vector = self.fnn(obs) 
+
+        out = self.fnn2(feature_vector)
+
+        log_probs = self.actor(out)
+        action_dist = Categorical(logits=log_probs)
+        log_prob =  action_dist.log_prob(action)
+        entropy = action_dist.entropy()
+
+        value = self.critic(out)
+
+        return value, log_prob, entropy
+
+    def evaluate_value(self, obs):
+        
+        if self.image:
+            feature_vector = self.cnn(obs)
+        else:
+            feature_vector = self.fnn(obs)
+        out = self.fnn2(feature_vector)
+        value = self.critic(out)
+        
+        return value
+
+    def reset_hidden_memory(self, worker):
+        
+        self.hidden_memory[:, worker] = torch.zeros(
+            1, 1, self.hidden_memory_size
+            )
+        

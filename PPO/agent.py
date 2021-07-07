@@ -107,6 +107,11 @@ class Agent(object):
                 value_loss += mb_value_loss
         self.buffer.empty()
 
+    def reset_hidden_memory(self, dones):
+        for worker, done in enumerate(dones):
+            if done:
+                self.policy.reset_hidden_memory(worker)
+
 
     ######################### Private Functions ###########################
 

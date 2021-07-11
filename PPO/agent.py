@@ -100,7 +100,7 @@ class Agent(object):
         value_loss = 0
         n_batches = self.memory_size // self.batch_size
         for _ in range(self.num_epoch):
-            self.buffer.shuffle(self.seq_len)
+            self.buffer.shuffle(8)
             for b in range(n_batches):
                 batch = self.buffer.sample(b, self.batch_size, self.seq_len)
                 mb_policy_loss, mb_value_loss = self._update_policy(batch, clip_range, entropy_coef)

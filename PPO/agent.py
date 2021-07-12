@@ -42,8 +42,8 @@ class Agent(object):
         self.step += 1
         with torch.no_grad():
             obs = torch.FloatTensor(obs).unsqueeze(1)
-            action, value, log_prob, hidden_memory = self.policy(obs)
-            return action.flatten(), value, log_prob, hidden_memory
+            action, value, log_prob = self.policy(obs)
+            return action.flatten(), value, log_prob
 
     def add_to_memory(
         self, prev_obs, action, reward, done, value, 

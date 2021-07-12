@@ -62,7 +62,7 @@ class GRUPolicy(nn.Module):
 
         value = self.critic(self.hidden_memory)
 
-        return action, value, log_prob, self.hidden_memory
+        return action, value, log_prob
 
     def evaluate_action(self, obs, action, hidden_memory):
         
@@ -144,7 +144,7 @@ class ModifiedGRUPolicy(nn.Module):
 
         value = self.critic(out)
 
-        return action, value, log_prob, self.hidden_memory
+        return action, value, log_prob
 
     def evaluate_action(self, obs, action, hidden_memory):
         
@@ -222,7 +222,7 @@ class FNNPolicy(nn.Module):
 
         value = self.critic(out)
 
-        return action, value, log_prob, None
+        return action, value, log_prob
 
     def evaluate_action(self, obs, action, hidden_memory):
         

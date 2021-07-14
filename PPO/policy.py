@@ -41,7 +41,7 @@ class GRUPolicy(nn.Module):
         self.actor = nn.Linear(HIDDEN_MEMORY_SIZE, action_size)
         self.critic = nn.Linear(HIDDEN_MEMORY_SIZE, 1)
         self.hidden_memory_size = HIDDEN_MEMORY_SIZE
-        self.hidden_memory = torch.zeros(1, 
+        self.hidden_memory = torch.randn(1, 
             self.num_workers,
             self.hidden_memory_size
             )
@@ -94,7 +94,7 @@ class GRUPolicy(nn.Module):
 
     def reset_hidden_memory(self, worker):
         
-        self.hidden_memory[:, worker] = torch.zeros(
+        self.hidden_memory[:, worker] = torch.randn(
             1, 1, self.hidden_memory_size
             )
         
@@ -122,7 +122,7 @@ class ModifiedGRUPolicy(nn.Module):
         self.actor = nn.Linear(HIDDEN_MEMORY_SIZE, action_size)
         self.critic = nn.Linear(HIDDEN_MEMORY_SIZE, 1)
         self.hidden_memory_size = HIDDEN_MEMORY_SIZE
-        self.hidden_memory = torch.zeros(1, 
+        self.hidden_memory = torch.randn(1, 
             self.num_workers,
             self.hidden_memory_size
             )
@@ -180,7 +180,7 @@ class ModifiedGRUPolicy(nn.Module):
 
     def reset_hidden_memory(self, worker):
         
-        self.hidden_memory[:, worker] = torch.zeros(
+        self.hidden_memory[:, worker] = torch.randn(
             1, 1, self.hidden_memory_size
             )
 

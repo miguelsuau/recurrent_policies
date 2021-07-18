@@ -41,7 +41,7 @@ class GRUPolicy(nn.Module):
         self.actor = nn.Linear(HIDDEN_MEMORY_SIZE, action_size)
         self.critic = nn.Linear(HIDDEN_MEMORY_SIZE, 1)
         self.hidden_memory_size = HIDDEN_MEMORY_SIZE
-        self.hidden_memory = torch.randn(1, 
+        self.hidden_memory = torch.zeros(1, 
             self.num_workers,
             self.hidden_memory_size
             )
@@ -64,21 +64,31 @@ class GRUPolicy(nn.Module):
 
         return action, value, log_prob
 
-    def evaluate_action(self, obs, action, hidden_memory):
+    def evaluate_action(self, obs, action, hidden_memory, masks):
         
         if self.image:
             feature_vector = self.cnn(obs)
         else:
             feature_vector = self.fnn(obs) 
-
-        hidden_memory, _ = self.gru(feature_vector, hidden_memory)
-
-        log_probs = self.actor(hidden_memory)
+        
+        seq_len = feature_vector.size(1)
+        hidden_memories = []
+        # NOTE: We use masks to zero out hidden memory if last 
+        # step belongs to previous episode. Mask_{t-1}*hidden_memory_t
+        masks = torch.cat((torch.ones(masks.size(0), 1), masks), dim=1)
+        for t in range(seq_len):
+            _, hidden_memory = self.gru(
+                feature_vector[:,t].unsqueeze(1), 
+                (hidden_memory[0].transpose(0,1)*masks[:,t]).transpose(0,1).unsqueeze(0)
+                )
+            hidden_memories.append(hidden_memory)
+        hidden_memories = torch.cat(hidden_memories, 0).transpose(0,1)
+        log_probs = self.actor(hidden_memories)
         action_dist = Categorical(logits=log_probs)
         log_prob =  action_dist.log_prob(action)
         entropy = action_dist.entropy()
 
-        value = self.critic(hidden_memory)
+        value = self.critic(hidden_memories)
 
         return value, log_prob, entropy
 
@@ -94,7 +104,7 @@ class GRUPolicy(nn.Module):
 
     def reset_hidden_memory(self, worker):
         
-        self.hidden_memory[:, worker] = torch.randn(
+        self.hidden_memory[:, worker] = torch.zeros(
             1, 1, self.hidden_memory_size
             )
         
@@ -122,7 +132,7 @@ class ModifiedGRUPolicy(nn.Module):
         self.actor = nn.Linear(HIDDEN_MEMORY_SIZE, action_size)
         self.critic = nn.Linear(HIDDEN_MEMORY_SIZE, 1)
         self.hidden_memory_size = HIDDEN_MEMORY_SIZE
-        self.hidden_memory = torch.randn(1, 
+        self.hidden_memory = torch.zeros(1, 
             self.num_workers,
             self.hidden_memory_size
             )
@@ -180,7 +190,7 @@ class ModifiedGRUPolicy(nn.Module):
 
     def reset_hidden_memory(self, worker):
         
-        self.hidden_memory[:, worker] = torch.randn(
+        self.hidden_memory[:, worker] = torch.zeros(
             1, 1, self.hidden_memory_size
             )
 
@@ -219,7 +229,6 @@ class FNNPolicy(nn.Module):
         action_dist = Categorical(logits=logits)
         action = action_dist.sample()
         log_prob = action_dist.log_prob(action)
-
         value = self.critic(out)
 
         return action, value, log_prob

@@ -65,8 +65,9 @@ class Agent(object):
         """
         Computes GAE and returns for a given time horizon
         """
-        obs = torch.FloatTensor(obs).unsqueeze(1)
-        last_value = self.policy.evaluate_value(obs)
+        with torch.no_grad():
+            obs = torch.FloatTensor(obs).unsqueeze(1)
+            last_value = self.policy.evaluate_value(obs)
         batch = self.buffer.get_last_entries(
             time_horizon, 
             ['rewards', 'values','dones']
@@ -140,8 +141,9 @@ class Agent(object):
             old_hidden_memories = torch.FloatTensor(batch['hidden_memories']).flatten(end_dim=1)[:, 0].unsqueeze(0)
         else:
             old_hidden_memories = None
+        masks = torch.FloatTensor(batch['masks']).flatten(end_dim=1)
         values, log_prob, entropy = self.policy.evaluate_action(
-            obs, actions, old_hidden_memories
+            obs, actions, old_hidden_memories, masks
             )
         # Normalize advantage
         advantages = torch.FloatTensor(batch['advantages']).flatten(end_dim=1)

@@ -136,7 +136,7 @@ class Agent(object):
             ):
         
         obs = torch.FloatTensor(batch['obs']).flatten(end_dim=1)
-        actions = torch.FloatTensor(batch['actions']).flatten(end_dim=1)
+        actions = torch.FloatTensor(batch['actions']).flatten()
         if self.recurrent_policy:
             old_hidden_memories = torch.FloatTensor(batch['hidden_memories']).flatten(end_dim=1)
         else:
@@ -146,11 +146,11 @@ class Agent(object):
             obs, actions, old_hidden_memories, masks
             )
         # Normalize advantage
-        advantages = torch.FloatTensor(batch['advantages']).flatten(end_dim=1)
+        advantages = torch.FloatTensor(batch['advantages']).flatten()
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
 
         # importance sampling ratio
-        old_log_probs = torch.FloatTensor(batch['log_probs']).flatten(end_dim=1)
+        old_log_probs = torch.FloatTensor(batch['log_probs']).flatten()
         ratio = torch.exp(log_prob - old_log_probs)
 
         # policy loss
@@ -159,8 +159,8 @@ class Agent(object):
         policy_loss = -torch.min(policy_loss_1, policy_loss_2).mean()
 
         # value loss
-        returns = torch.FloatTensor(batch['returns']).flatten(end_dim=1)
-        old_values = torch.FloatTensor(batch['values']).flatten(end_dim=1)
+        returns = torch.FloatTensor(batch['returns']).flatten()
+        old_values = torch.FloatTensor(batch['values']).flatten()
         clipped_values = old_values + torch.clamp(
                 values.squeeze() - old_values, -clip_range, clip_range
             )

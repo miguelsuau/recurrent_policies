@@ -84,7 +84,7 @@ class GRUPolicy(nn.Module):
                 old_hidden_memory[:,t].unsqueeze(0)*(1-masks[:,t]).view(1,-1,1)
                 )
             hidden_memories.append(hidden_memory)
-        hidden_memories = torch.cat(hidden_memories, 0).transpose(0,1)
+        hidden_memories = torch.cat(hidden_memories, 0).transpose(0,1).flatten(end_dim=1)
         log_probs = self.actor(hidden_memories)
         action_dist = Categorical(logits=log_probs)
         log_prob =  action_dist.log_prob(action)
@@ -158,18 +158,30 @@ class ModifiedGRUPolicy(nn.Module):
 
         return action, value, log_prob
 
-    def evaluate_action(self, obs, action, hidden_memory):
+    def evaluate_action(self, obs, action, old_hidden_memory, masks):
         
         if self.image:
             feature_vector = self.cnn(obs)
         else:
             feature_vector = self.fnn(obs) 
 
-        out = []
         seq_len = feature_vector.size(1)
-        for i in range(seq_len):
-            out.append(self.fnn2(torch.cat((feature_vector[:,i].unsqueeze(1), hidden_memory.transpose(0,1)),2)))
-            _, hidden_memory = self.gru(feature_vector[:,i].unsqueeze(1), hidden_memory)
+        out = []
+        # NOTE: We use masks to zero out hidden memory if last 
+        # step belongs to previous episode. Mask_{t-1}*hidden_memory_t
+        masks = torch.cat((torch.ones(masks.size(0), 1), masks), dim=1)
+        hidden_memory = old_hidden_memory[:,0].unsqueeze(0)
+        for t in range(seq_len):
+            hidden_memory = hidden_memory*masks[:,t].view(1,-1,1) + \
+                old_hidden_memory[:,t].unsqueeze(0)*(1-masks[:,t]).view(1,-1,1)
+            out.append(self.fnn2(torch.cat(
+                (feature_vector[:,t].unsqueeze(1), 
+                 hidden_memory.transpose(0,1))
+                ,2)))
+            _, hidden_memory = self.gru(
+                feature_vector[:,t].unsqueeze(1), 
+                hidden_memory
+                )
         out = torch.cat(out, 1)
         log_probs = self.actor(out)
         action_dist = Categorical(logits=log_probs)

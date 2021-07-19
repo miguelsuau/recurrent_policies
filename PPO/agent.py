@@ -138,7 +138,7 @@ class Agent(object):
         obs = torch.FloatTensor(batch['obs']).flatten(end_dim=1)
         actions = torch.FloatTensor(batch['actions']).flatten(end_dim=1)
         if self.recurrent_policy:
-            old_hidden_memories = torch.FloatTensor(batch['hidden_memories']).flatten(end_dim=1)[:, 0].unsqueeze(0)
+            old_hidden_memories = torch.FloatTensor(batch['hidden_memories']).flatten(end_dim=1)
         else:
             old_hidden_memories = None
         masks = torch.FloatTensor(batch['masks']).flatten(end_dim=1)
@@ -155,7 +155,7 @@ class Agent(object):
 
         # policy loss
         policy_loss_1 = advantages * ratio
-        policy_loss_2 = advantages * torch.clamp(ratio, 1 - clip_range, 1 + clip_range)
+        policy_loss_2 = advantages * torch.clamp(ratio, 1.0 - clip_range, 1.0 + clip_range)
         policy_loss = -torch.min(policy_loss_1, policy_loss_2).mean()
 
         # value loss
@@ -170,11 +170,11 @@ class Agent(object):
 
         # Entropy bonus
         entropy_bonus = -torch.mean(entropy)
+        
+        self.optimizer.zero_grad()
 
         loss = policy_loss + value_coef * value_loss + entropy_coef * entropy_bonus
 
-        # Optimization step
-        self.optimizer.zero_grad()
         loss.backward()
         # Clip grad norm
         # torch.nn.utils.clip_grad_norm_(self.policy.parameters(), max_grad_norm)

@@ -64,7 +64,7 @@ class GRUPolicy(nn.Module):
 
         return action, value, log_prob
 
-    def evaluate_action(self, obs, action, hidden_memory, masks):
+    def evaluate_action(self, obs, action, old_hidden_memory, masks):
         
         if self.image:
             feature_vector = self.cnn(obs)
@@ -76,10 +76,12 @@ class GRUPolicy(nn.Module):
         # NOTE: We use masks to zero out hidden memory if last 
         # step belongs to previous episode. Mask_{t-1}*hidden_memory_t
         masks = torch.cat((torch.ones(masks.size(0), 1), masks), dim=1)
+        hidden_memory = old_hidden_memory[:,0].unsqueeze(0)
         for t in range(seq_len):
             _, hidden_memory = self.gru(
                 feature_vector[:,t].unsqueeze(1), 
-                (hidden_memory[0].transpose(0,1)*masks[:,t]).transpose(0,1).unsqueeze(0)
+                hidden_memory*masks[:,t].view(1,-1,1) + 
+                old_hidden_memory[:,t].unsqueeze(0)*(1-masks[:,t]).view(1,-1,1)
                 )
             hidden_memories.append(hidden_memory)
         hidden_memories = torch.cat(hidden_memories, 0).transpose(0,1)

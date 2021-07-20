@@ -147,7 +147,7 @@ class Agent(object):
             )
         # Normalize advantage
         advantages = torch.FloatTensor(batch['advantages']).flatten()
-        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+        # advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
 
         # importance sampling ratio
         old_log_probs = torch.FloatTensor(batch['log_probs']).flatten()

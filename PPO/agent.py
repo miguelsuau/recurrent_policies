@@ -30,7 +30,7 @@ class Agent(object):
         self.recurrent_policy = policy.recurrent
         self.policy = policy
         self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=learning_rate)
-        self.lr_schedule = LRLinearSchedule(self.optimizer, total_steps, learning_rate)
+        self.lr_schedule = LRLinearSchedule(self.optimizer, total_steps, learning_rate, 1.0e-10)
         self.clip_schedule = LinearSchedule(total_steps, clip_range, 1.0e-5)
         self.entropy_schedule = LinearSchedule(total_steps, entropy_coef, entropy_coef)
         self.buffer = Buffer(memory_size)
@@ -97,6 +97,7 @@ class Agent(object):
         self.lr_schedule.update_learning_rate(self.step)
         clip_range = self.clip_schedule.update(self.step)
         entropy_coef = self.entropy_schedule.update(self.step)
+        print(clip_range, entropy_coef)
         policy_loss = 0
         value_loss = 0
         n_batches = self.memory_size // self.batch_size

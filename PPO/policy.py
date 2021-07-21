@@ -247,14 +247,14 @@ class FNNPolicy(nn.Module):
 
         return action, value, log_prob
 
-    def evaluate_action(self, obs, action, hidden_memory):
+    def evaluate_action(self, obs, action, hidden_memory, masks):
         
         if self.image:
             feature_vector = self.cnn(obs)
         else:
             feature_vector = self.fnn(obs) 
 
-        out = self.fnn2(feature_vector)
+        out = self.fnn2(feature_vector).flatten(end_dim=1)
 
         log_probs = self.actor(out)
         action_dist = Categorical(logits=log_probs)

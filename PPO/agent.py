@@ -35,6 +35,7 @@ class Agent(object):
         self.entropy_schedule = LinearSchedule(total_steps, entropy_coef, entropy_coef)
         self.buffer = Buffer(memory_size)
         self.step = 0
+        print('ENTROPY COEFFICIENT', entropy_coef)
         
 
     def choose_action(self, obs):
@@ -61,7 +62,7 @@ class Agent(object):
             self.buffer['hidden_memories'].append(hidden_memory.squeeze(0).detach().numpy())
             # self.buffer['prev_action'].append(prev_action)
     
-    def bootstrap(self, obs, time_horizon, gamma=0.99, lambd=0.95):
+    def bootstrap(self, obs, rollout_steps, gamma=0.99, lambd=0.95):
         """
         Computes GAE and returns for a given time horizon
         """
@@ -69,7 +70,7 @@ class Agent(object):
             obs = torch.FloatTensor(obs).unsqueeze(1)
             last_value = self.policy.evaluate_value(obs)
         batch = self.buffer.get_last_entries(
-            time_horizon, 
+            rollout_steps, 
             ['rewards', 'values','dones']
             )
         advantages = self._compute_advantages(
@@ -97,7 +98,6 @@ class Agent(object):
         self.lr_schedule.update_learning_rate(self.step)
         clip_range = self.clip_schedule.update(self.step)
         entropy_coef = self.entropy_schedule.update(self.step)
-        print(clip_range, entropy_coef)
         policy_loss = 0
         value_loss = 0
         n_batches = self.memory_size // self.batch_size
@@ -163,19 +163,19 @@ class Agent(object):
         returns = torch.FloatTensor(batch['returns']).flatten()
         old_values = torch.FloatTensor(batch['values']).flatten()
         clipped_values = old_values + torch.clamp(
-                values.squeeze() - old_values, -clip_range, clip_range
+                values.flatten() - old_values, -clip_range, clip_range
             )
-        value_loss1 = F.mse_loss(returns, values.squeeze())
-        value_loss2 = F.mse_loss(returns, clipped_values)
-        value_loss = torch.max(value_loss1, value_loss2)
+        value_loss1 = F.mse_loss(returns, values.flatten(), reduction='none')
+
+        value_loss2 = F.mse_loss(returns, clipped_values, reduction='none')
+        value_loss = torch.max(value_loss1, value_loss2).mean()
 
         # Entropy bonus
         entropy_bonus = -torch.mean(entropy)
-        
-        self.optimizer.zero_grad()
 
         loss = policy_loss + value_coef * value_loss + entropy_coef * entropy_bonus
-
+        
+        self.optimizer.zero_grad()
         loss.backward()
         # Clip grad norm
         # torch.nn.utils.clip_grad_norm_(self.policy.parameters(), max_grad_norm)

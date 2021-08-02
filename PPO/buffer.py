@@ -42,9 +42,10 @@ class Buffer(dict):
                 end = (s+1)*seq_len + b*batch_size
                 batch[key].append(self[key][start:end])
             # permut dimensions workers-seq to mantain sequence order
-            axis = np.arange(np.array(batch[key]).ndim)
-            axis[1], axis[2] = axis[2], axis[1]
-            batch[key] = np.transpose(batch[key], axis)
+            # axis = np.arange(np.array(batch[key]).ndim)
+            # axis[1], axis[2] = axis[2], axis[1]
+            batch[key] = np.swapaxes(batch[key], 1, 2)
+            # batch[key] = np.transpose(batch[key], axis)
         return batch
 
     def shuffle(self, seq_len):

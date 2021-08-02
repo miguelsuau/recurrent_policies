@@ -35,8 +35,6 @@ class Agent(object):
         self.entropy_schedule = LinearSchedule(total_steps, entropy_coef, entropy_coef)
         self.buffer = Buffer(memory_size)
         self.step = 0
-        print('ENTROPY COEFFICIENT', entropy_coef)
-        
 
     def choose_action(self, obs):
 

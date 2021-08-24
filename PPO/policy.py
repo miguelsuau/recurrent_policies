@@ -6,7 +6,7 @@ from torch.distributions import Categorical
 import numpy as np
 
 HIDDEN_SIZE = 512
-HIDDEN_MEMORY_SIZE = 512
+HIDDEN_MEMORY_SIZE = 256
 NUM_FILTERS = [64, 64, 32]
 KERNEL_SIZE = [8, 4, 2]
 

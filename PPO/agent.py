@@ -35,6 +35,7 @@ class Agent(object):
         self.entropy_schedule = LinearSchedule(total_steps, entropy_coef, 1.0e-5)
         self.buffer = Buffer(memory_size)
         self.step = 0
+        torch.set_num_threads(1)
         torch.device('cuda')
         print('TORCH DEVICE', next(self.policy.parameters()).is_cuda)
         print('TORCH NUM THREADS', torch.get_num_threads())

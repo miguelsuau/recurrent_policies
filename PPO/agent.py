@@ -37,6 +37,7 @@ class Agent(object):
         self.step = 0
         torch.device('cuda')
         print('TORCH DEVICE', next(self.policy.parameters()).is_cuda)
+        print('TORCH NUM THREADS', torch.get_num_threads())
 
     def choose_action(self, obs):
 

@@ -5,6 +5,7 @@ import numpy as np
 import torch
 from torch.nn import functional as F
 from recurrent_policies.PPO.utils import LinearSchedule, LRLinearSchedule
+import os
 
 class Agent(object):
     """
@@ -20,7 +21,9 @@ class Agent(object):
         learning_rate = 2.5e-4,
         total_steps = 2.0e6,
         clip_range = 0.2,
-        entropy_coef = 1.0e-3
+        entropy_coef = 1.0e-3,
+        save_path = './saved_policies/',
+        load = False
         ):
 
         self.memory_size = memory_size
@@ -35,6 +38,11 @@ class Agent(object):
         self.entropy_schedule = LinearSchedule(total_steps, entropy_coef, 1.0e-5)
         self.buffer = Buffer(memory_size)
         self.step = 0
+        self.save_path = os.path.join(save_path, self.policy.get_architecture())
+        if load:
+            path = os.path.join(self.save_path, 'policy.pth')
+            self.policy.load_state_dict(torch.load(path))
+            print('Policy loaded')
         torch.set_num_threads(1)
         torch.device('cuda')
         print('TORCH DEVICE', next(self.policy.parameters()).is_cuda)
@@ -132,7 +140,8 @@ class Agent(object):
             advantages[t, :] = last_advantage
             last_value = value[t, :]
         return advantages
-
+    
+    
     def _update_policy(
             self, batch, clip_range=0.2, entropy_coef=1e-3, 
             value_coef=1.0, max_grad_norm=0.5
@@ -177,9 +186,15 @@ class Agent(object):
 
         loss = policy_loss + value_coef * value_loss + entropy_coef * entropy_bonus
         
-        self.optimizer.zero_grad()
+        self.optimizer.zero_grad(set_to_none=True)
         loss.backward()
         # Clip grad norm
         # torch.nn.utils.clip_grad_norm_(self.policy.parameters(), max_grad_norm)
         self.optimizer.step()
         return policy_loss, value_loss
+
+    def save_policy(self):
+        if not os.path.exists(self.save_path):
+            os.makedirs(self.save_path)
+        path = os.path.join(self.save_path, 'policy.pth')
+        torch.save(self.policy.state_dict(), path) 

@@ -47,7 +47,6 @@ class GRUPolicy(nn.Module):
             )
 
     def forward(self, obs):
-
         if self.image:
             feature_vector = self.cnn(obs)
         else:
@@ -107,6 +106,9 @@ class GRUPolicy(nn.Module):
         self.hidden_memory[:, worker] = torch.zeros(
             1, 1, self.hidden_memory_size
             )
+
+    def get_architecture(self):
+        return 'GRU'
         
 
 class ModifiedGRUPolicy(nn.Module):
@@ -204,6 +206,9 @@ class ModifiedGRUPolicy(nn.Module):
         self.hidden_memory[:, worker] = torch.zeros(
             1, 1, self.hidden_memory_size
             )
+    
+    def get_architecture(self):
+        return 'ModifiedGRU'
 
 class FNNPolicy(nn.Module):
 
@@ -227,6 +232,7 @@ class FNNPolicy(nn.Module):
         self.actor = nn.Linear(HIDDEN_MEMORY_SIZE, action_size)
         self.critic = nn.Linear(HIDDEN_MEMORY_SIZE, 1)
 
+    
     def forward(self, obs):
 
         if self.image:
@@ -244,6 +250,7 @@ class FNNPolicy(nn.Module):
 
         return action, value, log_prob
 
+    
     def evaluate_action(self, obs, action, hidden_memory, masks):
         
         if self.image:
@@ -260,6 +267,7 @@ class FNNPolicy(nn.Module):
         value = self.critic(out)
         return value, log_prob, entropy
 
+    
     def evaluate_value(self, obs):
         
         if self.image:
@@ -270,6 +278,9 @@ class FNNPolicy(nn.Module):
         value = self.critic(out)
         
         return value
+
+    def get_architecture(self):
+        return 'FNN'
 
 
 
@@ -300,9 +311,9 @@ class IAMPolicy(nn.Module):
             self.num_workers,
             self.hidden_memory_size
             )
+
     
     def forward(self, obs):
-
         if self.image:
             feature_vector = self.cnn(obs)
         else:
@@ -320,6 +331,7 @@ class IAMPolicy(nn.Module):
 
         return action, value, log_prob
 
+    
     def evaluate_action(self, obs, action, old_hidden_memory, masks):
         
         if self.image:
@@ -351,6 +363,7 @@ class IAMPolicy(nn.Module):
 
         return value, log_prob, entropy
 
+    
     def evaluate_value(self, obs):
         
         if self.image:
@@ -365,8 +378,12 @@ class IAMPolicy(nn.Module):
 
         return value
 
+    
     def reset_hidden_memory(self, worker):
         
         self.hidden_memory[:, worker] = torch.zeros(
             1, 1, self.hidden_memory_size
             )
+    
+    def get_architecture(self):
+        return 'IAM'

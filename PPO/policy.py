@@ -300,7 +300,7 @@ class IAMPolicy(nn.Module):
                 nn.ReLU()
                 )
         self.fnn2 = nn.Sequential(
-            nn.Linear(HIDDEN_SIZE, HIDDEN_MEMORY_SIZE//2),
+            nn.Linear(HIDDEN_SIZE, HIDDEN_MEMORY_SIZE),
             nn.ReLU()
             )
         self.gru = nn.GRU(obs_size, HIDDEN_MEMORY_SIZE//2, batch_first=True)

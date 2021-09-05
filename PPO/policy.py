@@ -304,8 +304,8 @@ class IAMPolicy(nn.Module):
             nn.ReLU()
             )
         self.gru = nn.GRU(obs_size, HIDDEN_MEMORY_SIZE//2, batch_first=True)
-        self.actor = nn.Linear(HIDDEN_MEMORY_SIZE, action_size)
-        self.critic = nn.Linear(HIDDEN_MEMORY_SIZE, 1)
+        self.actor = nn.Linear(HIDDEN_MEMORY_SIZE + HIDDEN_MEMORY_SIZE//2, action_size)
+        self.critic = nn.Linear(HIDDEN_MEMORY_SIZE + HIDDEN_MEMORY_SIZE//2, 1)
         self.hidden_memory_size = HIDDEN_MEMORY_SIZE//2
         self.hidden_memory = torch.zeros(1, 
             self.num_workers,

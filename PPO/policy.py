@@ -299,11 +299,11 @@ class IAMPolicy(nn.Module):
                 nn.Linear(obs_size, HIDDEN_SIZE),
                 nn.ReLU()
                 )
-            self.fnn2 = nn.Sequential(
-                nn.Linear(HIDDEN_SIZE, HIDDEN_MEMORY_SIZE//2),
-                nn.ReLU()
-                )
-        self.gru = nn.GRU(HIDDEN_SIZE, HIDDEN_MEMORY_SIZE//2, batch_first=True)
+        self.fnn2 = nn.Sequential(
+            nn.Linear(HIDDEN_SIZE, HIDDEN_MEMORY_SIZE//2),
+            nn.ReLU()
+            )
+        self.gru = nn.GRU(obs_size, HIDDEN_MEMORY_SIZE//2, batch_first=True)
         self.actor = nn.Linear(HIDDEN_MEMORY_SIZE, action_size)
         self.critic = nn.Linear(HIDDEN_MEMORY_SIZE, 1)
         self.hidden_memory_size = HIDDEN_MEMORY_SIZE//2
@@ -319,7 +319,7 @@ class IAMPolicy(nn.Module):
         else:
             feature_vector = self.fnn(obs)
         fnn_out  = self.fnn2(feature_vector)
-        gru_out, self.hidden_memory = self.gru(feature_vector, self.hidden_memory)
+        gru_out, self.hidden_memory = self.gru(obs, self.hidden_memory)
         out = torch.cat((fnn_out, gru_out), 2).flatten(end_dim=1)
 
         logits = self.actor(out)
@@ -349,7 +349,7 @@ class IAMPolicy(nn.Module):
             fnn_out  = self.fnn2(feature_vector[:,t].unsqueeze(1))
             hidden_memory = hidden_memory*masks[:,t].view(1,-1,1)
             gru_out, hidden_memory = self.gru(
-                feature_vector[:,t].unsqueeze(1), 
+                obs[:,t].unsqueeze(1), 
                 hidden_memory
                 )
             out.append(torch.cat((fnn_out, gru_out), 2))
@@ -372,7 +372,7 @@ class IAMPolicy(nn.Module):
             feature_vector = self.fnn(obs)
 
         fnn_out  = self.fnn2(feature_vector)
-        gru_out, _ = self.gru(feature_vector, self.hidden_memory)
+        gru_out, _ = self.gru(obs, self.hidden_memory)
         out = torch.cat((fnn_out, gru_out), 2).flatten(end_dim=1)
         value = self.critic(out)
 

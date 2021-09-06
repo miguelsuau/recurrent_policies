@@ -286,7 +286,7 @@ class FNNPolicy(nn.Module):
 
 class IAMPolicy(nn.Module):
 
-    def __init__(self, obs_size, action_size, num_workers):
+    def __init__(self, obs_size, action_size, num_workers, dset=None):
         super(IAMPolicy, self).__init__()
         self.num_workers = num_workers
         self.recurrent = True
@@ -303,7 +303,11 @@ class IAMPolicy(nn.Module):
             nn.Linear(HIDDEN_SIZE, HIDDEN_MEMORY_SIZE),
             nn.ReLU()
             )
-        self.gru = nn.GRU(obs_size, HIDDEN_MEMORY_SIZE//2, batch_first=True)
+        if dset is not None:
+            self.gru = nn.GRU(len(dset), HIDDEN_MEMORY_SIZE//2, batch_first=True)
+        else:
+            self.gru = nn.GRU(obs_size, HIDDEN_MEMORY_SIZE//2, batch_first=True)
+
         self.actor = nn.Linear(HIDDEN_MEMORY_SIZE + HIDDEN_MEMORY_SIZE//2, action_size)
         self.critic = nn.Linear(HIDDEN_MEMORY_SIZE + HIDDEN_MEMORY_SIZE//2, 1)
         self.hidden_memory_size = HIDDEN_MEMORY_SIZE//2
@@ -311,6 +315,7 @@ class IAMPolicy(nn.Module):
             self.num_workers,
             self.hidden_memory_size
             )
+        self.dset = dset
 
     
     def forward(self, obs):
@@ -319,6 +324,8 @@ class IAMPolicy(nn.Module):
         else:
             feature_vector = self.fnn(obs)
         fnn_out  = self.fnn2(feature_vector)
+        if self.dset is not None:
+            obs = obs[:, :, self.dset]
         gru_out, self.hidden_memory = self.gru(obs, self.hidden_memory)
         out = torch.cat((fnn_out, gru_out), 2).flatten(end_dim=1)
 
@@ -345,6 +352,8 @@ class IAMPolicy(nn.Module):
         # step belongs to previous episode. Mask_{t-1}*hidden_memory_t
         masks = torch.cat((torch.ones(masks.size(0), 1), masks), dim=1)
         hidden_memory = old_hidden_memory[:,0].unsqueeze(0)
+        if self.dset is not None:
+            obs = obs[:, :, self.dset]
         for t in range(seq_len):
             fnn_out  = self.fnn2(feature_vector[:,t].unsqueeze(1))
             hidden_memory = hidden_memory*masks[:,t].view(1,-1,1)
@@ -371,6 +380,8 @@ class IAMPolicy(nn.Module):
         else:
             feature_vector = self.fnn(obs)
 
+        if self.dset is not None:
+            obs = obs[:, :, self.dset]
         fnn_out  = self.fnn2(feature_vector)
         gru_out, _ = self.gru(obs, self.hidden_memory)
         out = torch.cat((fnn_out, gru_out), 2).flatten(end_dim=1)

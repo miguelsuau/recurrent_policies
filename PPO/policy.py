@@ -304,13 +304,13 @@ class IAMPolicy(nn.Module):
             nn.ReLU()
             )
         if dset is not None:
-            self.gru = nn.GRU(len(dset), 64, batch_first=True)
+            self.gru = nn.GRU(len(dset), 128, batch_first=True)
         else:
-            self.gru = nn.GRU(obs_size, 64, batch_first=True)
+            self.gru = nn.GRU(obs_size, 128, batch_first=True)
 
-        self.actor = nn.Linear(192, action_size)
-        self.critic = nn.Linear(192, 1)
-        self.hidden_memory_size = 64
+        self.actor = nn.Linear(256, action_size)
+        self.critic = nn.Linear(256, 1)
+        self.hidden_memory_size = 128
         self.hidden_memory = torch.zeros(1, 
             self.num_workers,
             self.hidden_memory_size

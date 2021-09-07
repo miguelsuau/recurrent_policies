@@ -40,6 +40,7 @@ class Agent(object):
         self.step = 0
         self.save_path = os.path.join(save_path, self.policy.get_architecture())
         if load:
+            print(self.save_path)
             path = os.path.join(self.save_path, 'policy.pth')
             self.policy.load_state_dict(torch.load(path))
             print('Policy loaded')

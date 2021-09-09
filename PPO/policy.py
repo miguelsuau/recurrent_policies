@@ -362,7 +362,7 @@ class IAMPolicy(nn.Module):
                 hidden_memory
                 )
             out.append(torch.cat((fnn_out, gru_out), 2))
-        out = torch.cat(out, 1)[:,-1,:]#.flatten(end_dim=1)
+        out = torch.cat(out, 1).flatten(end_dim=1)
         log_probs = self.actor(out)
         action_dist = Categorical(logits=log_probs)
         log_prob =  action_dist.log_prob(action)

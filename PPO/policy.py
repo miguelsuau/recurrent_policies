@@ -310,7 +310,7 @@ class IAMPolicy(nn.Module):
 
         self.actor = nn.Linear(512, action_size)
         self.critic = nn.Linear(512, 1)
-        self.hidden_memory_size = 128
+        self.hidden_memory_size = 256
         self.hidden_memory = torch.zeros(1, 
             self.num_workers,
             self.hidden_memory_size

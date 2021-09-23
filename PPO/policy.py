@@ -296,11 +296,11 @@ class IAMPolicy(nn.Module):
         else:
             self.image = False
             self.fnn = nn.Sequential(
-                nn.Linear(obs_size, 512),
+                nn.Linear(obs_size, 256),
                 nn.ReLU()
                 )
         self.fnn2 = nn.Sequential(
-            nn.Linear(512, 256),
+            nn.Linear(256, 128),
             nn.ReLU()
             )
         if dset is not None:
@@ -308,8 +308,8 @@ class IAMPolicy(nn.Module):
         else:
             self.gru = nn.GRU(obs_size, 128, batch_first=True)
 
-        self.actor = nn.Linear(384, action_size)
-        self.critic = nn.Linear(384, 1)
+        self.actor = nn.Linear(256, action_size)
+        self.critic = nn.Linear(256, 1)
         self.hidden_memory_size = 128
         self.hidden_memory = torch.zeros(1, 
             self.num_workers,

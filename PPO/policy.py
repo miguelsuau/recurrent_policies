@@ -398,3 +398,80 @@ class IAMPolicy(nn.Module):
     
     def get_architecture(self):
         return 'IAM'
+
+class FNNFSPolicy(nn.Module):
+
+    def __init__(self, obs_size, action_size, num_workers, dset=None, n_stack=1):
+        super(FNNFSPolicy, self).__init__()
+        self.num_workers = num_workers
+        self.recurrent = False
+        self.dset = np.concatenate([np.array(dset) + obs_size*i for i in range(0, n_stack-1)])
+        self.dset = np.concatenate([self.dset, np.arange(obs_size*(n_stack-1), obs_size*n_stack)])
+        
+        if isinstance(obs_size, list):
+            self.cnn = CNN(obs_size)
+            self.image = True
+        else:
+            self.fnn = nn.Sequential(
+                nn.Linear(obs_size+len(dset)*(n_stack-1), HIDDEN_SIZE),
+                nn.ReLU()
+                )
+            self.image = False
+        self.fnn2 = nn.Sequential(
+            nn.Linear(HIDDEN_SIZE, HIDDEN_MEMORY_SIZE),
+            nn.ReLU()
+            )
+        self.actor = nn.Linear(HIDDEN_MEMORY_SIZE, action_size)
+        self.critic = nn.Linear(HIDDEN_MEMORY_SIZE, 1)
+
+    
+    def forward(self, obs):
+        if self.dset is not None:
+            obs = obs[:, :, self.dset]
+        if self.image:
+            feature_vector = self.cnn(obs)
+        else:
+            feature_vector = self.fnn(obs)
+
+        out = self.fnn2(feature_vector)
+        
+        logits = self.actor(out)
+        action_dist = Categorical(logits=logits)
+        action = action_dist.sample()
+        log_prob = action_dist.log_prob(action)
+        value = self.critic(out)
+
+        return action, value, log_prob
+
+    
+    def evaluate_action(self, obs, action, hidden_memory, masks):
+        if self.dset is not None:
+            obs = obs[:, :, self.dset]
+        if self.image:
+            feature_vector = self.cnn(obs)
+        else:
+            feature_vector = self.fnn(obs) 
+        out = self.fnn2(feature_vector).flatten(end_dim=1)
+        log_probs = self.actor(out)
+        action_dist = Categorical(logits=log_probs)
+        log_prob =  action_dist.log_prob(action)
+        entropy = action_dist.entropy()
+
+        value = self.critic(out)
+        return value, log_prob, entropy
+
+    
+    def evaluate_value(self, obs):
+        if self.dset is not None:
+            obs = obs[:, :, self.dset]
+        if self.image:
+            feature_vector = self.cnn(obs)
+        else:
+            feature_vector = self.fnn(obs)
+        out = self.fnn2(feature_vector)
+        value = self.critic(out)
+        
+        return value
+
+    def get_architecture(self):
+        return 'FNN'

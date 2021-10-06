@@ -5,8 +5,8 @@ from torch import nn
 from torch.distributions import Categorical
 import numpy as np
 
-HIDDEN_SIZE = 128
-HIDDEN_MEMORY_SIZE = 64
+HIDDEN_SIZE = 64
+HIDDEN_MEMORY_SIZE = 32
 NUM_FILTERS = [64, 64, 32]
 KERNEL_SIZE = [8, 4, 2]
 

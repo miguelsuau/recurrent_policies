@@ -300,7 +300,7 @@ class IAMPolicy(nn.Module):
                 nn.ReLU()
                 )
         self.fnn2 = nn.Sequential(
-            nn.Linear(64, 256),
+            nn.Linear(256, 64),
             nn.ReLU()
             )
         if dset is not None:

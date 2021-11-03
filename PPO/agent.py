@@ -190,7 +190,7 @@ class Agent(object):
         self.optimizer.zero_grad(set_to_none=True)
         loss.backward()
         # Clip grad norm
-        # torch.nn.utils.clip_grad_norm_(self.policy.parameters(), max_grad_norm)
+        torch.nn.utils.clip_grad_norm_(self.policy.parameters(), max_grad_norm)
         self.optimizer.step()
         return policy_loss, value_loss
 

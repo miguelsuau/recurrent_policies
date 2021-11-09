@@ -1,3 +1,4 @@
+from random import shuffle
 import sys
 sys.path.append("..") 
 from recurrent_policies.PPO.buffer import Buffer
@@ -113,9 +114,9 @@ class Agent(object):
         value_loss = 0
         n_batches = self.memory_size // self.batch_size
         for _ in range(self.num_epoch):
-            self.buffer.shuffle(self.seq_len)
+            shuffled_buffer = self.buffer.shuffle(self.seq_len)
             for b in range(n_batches):
-                batch = self.buffer.sample(b, self.batch_size, self.seq_len)
+                batch = self.buffer.sample(b, self.batch_size, self.seq_len, shuffled_buffer)
                 mb_policy_loss, mb_value_loss = self._update_policy(batch, clip_range, entropy_coef)
                 policy_loss += mb_policy_loss
                 value_loss += mb_value_loss

@@ -257,7 +257,6 @@ class FNNPolicy(nn.Module):
             feature_vector = self.cnn(obs)
         else:
             feature_vector = self.fnn(obs) 
-
         out = self.fnn2(feature_vector).flatten(end_dim=1)
         log_probs = self.actor(out)
         action_dist = Categorical(logits=log_probs)
@@ -345,7 +344,6 @@ class IAMPolicy(nn.Module):
             feature_vector = self.cnn(obs)
         else:
             feature_vector = self.fnn(obs) 
-
         seq_len = feature_vector.size(1)
         out = []
         # NOTE: We use masks to zero out hidden memory if last 

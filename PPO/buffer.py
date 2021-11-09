@@ -28,7 +28,7 @@ class Buffer(dict):
         for key in self.keys():
             self[key] = []
 
-    def sample(self, b, batch_size, seq_len, keys=None):
+    def sample(self, b, batch_size, seq_len, shuffled_buffer, keys=None):
         """
         """
         batch = {}
@@ -37,14 +37,20 @@ class Buffer(dict):
             keys = self.keys()
         for key in keys:
             batch[key] = []
-            for s in range(n_sequences):
-                start = s*seq_len + b*batch_size
-                end = (s+1)*seq_len + b*batch_size
-                batch[key].append(self[key][start:end])
+            for seq in range(b*n_sequences, (b+1)*n_sequences):
+                # start = s*seq_len + b*batch_size
+                # end = (s+1)*seq_len + b*batch_size
+                batch[key].append(shuffled_buffer[key][seq])
             # permut dimensions workers-seq to mantain sequence order
             # axis = np.arange(np.array(batch[key]).ndim)
             # axis[1], axis[2] = axis[2], axis[1]
+            # try:
             batch[key] = np.swapaxes(batch[key], 1, 2)
+            # except:
+            #     print(key)
+            #     print(np.shape(batch[key]))
+            #     print(seq)
+            #     print(b)
             # batch[key] = np.transpose(batch[key], axis)
         return batch
 
@@ -75,11 +81,12 @@ class Buffer(dict):
         # Only include complete sequences
         indices = np.arange(0, n - n % seq_len, seq_len)
         random.shuffle(indices)
+        shuffled_buffer = {}
         for key in self.keys():
-            shuffled_memory = []
+            shuffled_buffer[key] = []
             for i in indices:
-                shuffled_memory.extend(self[key][i:i+seq_len])
-            self[key] = shuffled_memory
+                shuffled_buffer[key].append(self[key][i:i+seq_len])
+        return shuffled_buffer
 
     def get_last_entries(self, t, keys=None):
         """

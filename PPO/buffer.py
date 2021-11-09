@@ -48,25 +48,38 @@ class Buffer(dict):
             # batch[key] = np.transpose(batch[key], axis)
         return batch
 
+    # def shuffle(self, seq_len):
+    #     """
+    #     """
+    #     n = len(self['returns'])
+    #     # Only include complete sequences
+    #     indices = np.arange(0, n - n % seq_len, seq_len)
+    #     workers = np.shape(self['returns'])[1]
+    #     shuffled_buffer = dict()
+    #     for w in range(workers):
+    #         random.shuffle(indices)
+    #         for key in self.keys():
+    #             shuffled_list = list()
+    #             if key not in shuffled_buffer.keys():
+    #                 shuffled_buffer[key] = list()
+    #             for i in indices:
+    #                 shuffled_list.extend(np.array(self[key])[i:i+seq_len, w])
+    #             shuffled_buffer[key].append(shuffled_list)
+    #     for key in self.keys():
+    #         self[key] = np.swapaxes(shuffled_buffer[key], 0, 1)
+    
     def shuffle(self, seq_len):
         """
         """
         n = len(self['returns'])
         # Only include complete sequences
         indices = np.arange(0, n - n % seq_len, seq_len)
-        workers = np.shape(self['returns'])[1]
-        shuffled_buffer = dict()
-        for w in range(workers):
-            random.shuffle(indices)
-            for key in self.keys():
-                shuffled_list = list()
-                if key not in shuffled_buffer.keys():
-                    shuffled_buffer[key] = list()
-                for i in indices:
-                    shuffled_list.extend(np.array(self[key])[i:i+seq_len, w])
-                shuffled_buffer[key].append(shuffled_list)
+        random.shuffle(indices)
         for key in self.keys():
-            self[key] = np.swapaxes(shuffled_buffer[key], 0, 1)
+            shuffled_memory = []
+            for i in indices:
+                shuffled_memory.extend(self[key][i:i+seq_len])
+            self[key] = shuffled_memory
 
     def get_last_entries(self, t, keys=None):
         """

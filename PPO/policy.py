@@ -5,7 +5,7 @@ from torch import nn
 from torch.distributions import Categorical
 import numpy as np
 
-HIDDEN_SIZE = 256
+HIDDEN_SIZE = 512
 HIDDEN_MEMORY_SIZE = 256
 NUM_FILTERS = [64, 64, 32]
 KERNEL_SIZE = [8, 4, 2]
@@ -303,9 +303,16 @@ class IAMPolicy(nn.Module):
             nn.ReLU()
             )
         if dset is not None:
-            self.gru = nn.GRU(len(dset), 128, batch_first=True)
+            self.fnn3 = nn.Sequential(
+                nn.Linear(len(dset), 256),
+                nn.ReLU()
+                )   
         else:
-            self.gru = nn.GRU(obs_size, 128, batch_first=True)
+            self.fnn3 = nn.Sequential(
+                nn.Linear(obs_size, 256),
+                nn.ReLU()
+                )
+        self.gru = nn.GRU(256, 128, batch_first=True)
 
         self.actor = nn.Linear(256, action_size)
         self.critic = nn.Linear(256, 1)
@@ -324,8 +331,8 @@ class IAMPolicy(nn.Module):
             feature_vector = self.fnn(obs)
         fnn_out  = self.fnn2(feature_vector)
         if self.dset is not None:
-            obs = obs[:, :, self.dset]
-        gru_out, self.hidden_memory = self.gru(obs, self.hidden_memory)
+            out = self.fnn3(obs[:, :, self.dset])
+        gru_out, self.hidden_memory = self.gru(out, self.hidden_memory)
         out = torch.cat((fnn_out, gru_out), 2).flatten(end_dim=1)
 
         logits = self.actor(out)
@@ -351,12 +358,12 @@ class IAMPolicy(nn.Module):
         masks = torch.cat((torch.ones(masks.size(0), 1), masks), dim=1)
         hidden_memory = old_hidden_memory[:,0].unsqueeze(0)
         if self.dset is not None:
-            obs = obs[:, :, self.dset]
+            out_fnn3 = self.fnn3(obs[:, :, self.dset])
         for t in range(seq_len):
             fnn_out  = self.fnn2(feature_vector[:,t].unsqueeze(1))
             hidden_memory = hidden_memory*masks[:,t].view(1,-1,1)
             gru_out, hidden_memory = self.gru(
-                obs[:,t].unsqueeze(1), 
+                out_fnn3[:,t].unsqueeze(1), 
                 hidden_memory
                 )
             out.append(torch.cat((fnn_out, gru_out), 2))
@@ -379,9 +386,9 @@ class IAMPolicy(nn.Module):
             feature_vector = self.fnn(obs)
 
         if self.dset is not None:
-            obs = obs[:, :, self.dset]
+            out = self.fnn3(obs[:, :, self.dset])
         fnn_out  = self.fnn2(feature_vector)
-        gru_out, _ = self.gru(obs, self.hidden_memory)
+        gru_out, _ = self.gru(out, self.hidden_memory)
         out = torch.cat((fnn_out, gru_out), 2).flatten(end_dim=1)
         value = self.critic(out)
 

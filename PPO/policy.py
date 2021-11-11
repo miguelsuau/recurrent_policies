@@ -300,10 +300,7 @@ class IAMPolicy(nn.Module):
                     nn.Linear(obs_size-len(dset), 128),
                     nn.ReLU()
                     )
-            self.fnn3 = nn.Sequential(
-                nn.Linear(len(dset), 128),
-                nn.ReLU()
-                )   
+            self.gru = nn.GRU(len(dset), 128, batch_first=True)
         else:
             if isinstance(obs_size, list):
                 self.cnn = CNN(obs_size)
@@ -314,19 +311,16 @@ class IAMPolicy(nn.Module):
                     nn.Linear(obs_size, 128),
                     nn.ReLU()
                     )
-            self.fnn3 = nn.Sequential(
-                nn.Linear(obs_size, 128),
-                nn.ReLU()
-                )
+            self.gru = nn.GRU(obs_size, 128, batch_first=True)
+
         self.fnn2 = nn.Sequential(
-                nn.Linear(128, 64),
+                nn.Linear(256, 128),
                 nn.ReLU()
                 )
-        self.gru = nn.GRU(128, 64, batch_first=True)
 
         self.actor = nn.Linear(128, action_size)
         self.critic = nn.Linear(128, 1)
-        self.hidden_memory_size = 64
+        self.hidden_memory_size = 128
         self.hidden_memory = torch.zeros(1, 
             self.num_workers,
             self.hidden_memory_size
@@ -342,16 +336,18 @@ class IAMPolicy(nn.Module):
                 feature_vector = self.cnn(obs[:, :, nondset_mask])
             else:
                 feature_vector = self.fnn(obs[:, :, nondset_mask])
-            out = self.fnn3(obs[:, :, self.dset])
+            dset = obs[:, :, self.dset]
+            
         else:
             if self.image:
                 feature_vector = self.cnn(obs)
             else:
                 feature_vector = self.fnn(obs)
-            out = self.fnn3(obs)
-        fnn_out  = self.fnn2(feature_vector)
-        gru_out, self.hidden_memory = self.gru(out, self.hidden_memory)
-        out = torch.cat((fnn_out, gru_out), 2).flatten(end_dim=1)
+            dset = obs
+        
+        gru_out, self.hidden_memory = self.gru(dset, self.hidden_memory)
+        out = torch.cat((feature_vector, gru_out), 2).flatten(end_dim=1)
+        out  = self.fnn2(out)
 
         logits = self.actor(out)
         action_dist = Categorical(logits=logits)
@@ -372,13 +368,13 @@ class IAMPolicy(nn.Module):
                 feature_vector = self.cnn(obs[:, :, nondset_mask])
             else:
                 feature_vector = self.fnn(obs[:, :, nondset_mask])
-            out_fnn3 = self.fnn3(obs[:, :, self.dset])
+            dset = obs[:, :, self.dset] 
         else:
             if self.image:
                 feature_vector = self.cnn(obs)
             else:
                 feature_vector = self.fnn(obs)
-            out_fnn3 = self.fnn3(obs)
+            dset = obs
         seq_len = feature_vector.size(1)
         out = []
         # NOTE: We use masks to zero out hidden memory if last 
@@ -386,14 +382,14 @@ class IAMPolicy(nn.Module):
         masks = torch.cat((torch.ones(masks.size(0), 1), masks), dim=1)
         hidden_memory = old_hidden_memory[:,0].unsqueeze(0)
         for t in range(seq_len):
-            fnn_out  = self.fnn2(feature_vector[:,t].unsqueeze(1))
             hidden_memory = hidden_memory*masks[:,t].view(1,-1,1)
             gru_out, hidden_memory = self.gru(
-                out_fnn3[:,t].unsqueeze(1), 
+                dset[:,t].unsqueeze(1), 
                 hidden_memory
                 )
-            out.append(torch.cat((fnn_out, gru_out), 2))
+            out.append(torch.cat((feature_vector[:,t].unsqueeze(1), gru_out), 2))
         out = torch.cat(out, 1).flatten(end_dim=1)
+        out = self.fnn2(out)
         log_probs = self.actor(out)
         action_dist = Categorical(logits=log_probs)
         log_prob =  action_dist.log_prob(action)
@@ -413,16 +409,16 @@ class IAMPolicy(nn.Module):
                 feature_vector = self.cnn(obs[:, :, nondset_mask])
             else:
                 feature_vector = self.fnn(obs[:, :, nondset_mask])
-            out = self.fnn3(obs[:, :, self.dset])
+            dset = obs[:, :, self.dset]
         else:
             if self.image:
                 feature_vector = self.cnn(obs)
             else:
                 feature_vector = self.fnn(obs)
-            out = self.fnn3(obs)
-        fnn_out  = self.fnn2(feature_vector)
-        gru_out, _ = self.gru(out, self.hidden_memory)
-        out = torch.cat((fnn_out, gru_out), 2).flatten(end_dim=1)
+            
+        gru_out, _ = self.gru(dset, self.hidden_memory)
+        out = torch.cat((feature_vector, gru_out), 2).flatten(end_dim=1)
+        out  = self.fnn2(out)
         value = self.critic(out)
 
         return value

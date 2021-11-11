@@ -415,6 +415,7 @@ class IAMPolicy(nn.Module):
                 feature_vector = self.cnn(obs)
             else:
                 feature_vector = self.fnn(obs)
+            dset = obs
             
         gru_out, _ = self.gru(dset, self.hidden_memory)
         out = torch.cat((feature_vector, gru_out), 2).flatten(end_dim=1)

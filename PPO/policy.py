@@ -295,7 +295,7 @@ class IAMPolicy(nn.Module):
         else:
             self.image = False
             self.fnn = nn.Sequential(
-                nn.Linear(obs_size, 256),
+                nn.Linear(obs_size-len(dset), 256),
                 nn.ReLU()
                 )
         self.fnn2 = nn.Sequential(
@@ -325,13 +325,21 @@ class IAMPolicy(nn.Module):
 
     
     def forward(self, obs):
-        if self.image:
-            feature_vector = self.cnn(obs)
-        else:
-            feature_vector = self.fnn(obs)
-        fnn_out  = self.fnn2(feature_vector)
         if self.dset is not None:
+            nondset_mask = np.ones(obs.shape[2], np.bool)
+            nondset_mask[self.dset] = 0
+            if self.image:
+                feature_vector = self.cnn(obs[:, :, nondset_mask])
+            else:
+                feature_vector = self.fnn(obs[:, :, nondset_mask])
             out = self.fnn3(obs[:, :, self.dset])
+        else:
+            if self.image:
+                feature_vector = self.cnn(obs)
+            else:
+                feature_vector = self.fnn(obs)
+            out = self.fnn3(obs)
+        fnn_out  = self.fnn2(feature_vector)
         gru_out, self.hidden_memory = self.gru(out, self.hidden_memory)
         out = torch.cat((fnn_out, gru_out), 2).flatten(end_dim=1)
 
@@ -347,18 +355,26 @@ class IAMPolicy(nn.Module):
     
     def evaluate_action(self, obs, action, old_hidden_memory, masks):
         
-        if self.image:
-            feature_vector = self.cnn(obs)
+        if self.dset is not None:
+            nondset_mask = np.ones(obs.shape[2], np.bool)
+            nondset_mask[self.dset] = 0
+            if self.image:
+                feature_vector = self.cnn(obs[:, :, nondset_mask])
+            else:
+                feature_vector = self.fnn(obs[:, :, nondset_mask])
+            out_fnn3 = self.fnn3(obs[:, :, self.dset])
         else:
-            feature_vector = self.fnn(obs) 
+            if self.image:
+                feature_vector = self.cnn(obs)
+            else:
+                feature_vector = self.fnn(obs)
+            out = self.fnn3(obs)
         seq_len = feature_vector.size(1)
         out = []
         # NOTE: We use masks to zero out hidden memory if last 
         # step belongs to previous episode. Mask_{t-1}*hidden_memory_t
         masks = torch.cat((torch.ones(masks.size(0), 1), masks), dim=1)
         hidden_memory = old_hidden_memory[:,0].unsqueeze(0)
-        if self.dset is not None:
-            out_fnn3 = self.fnn3(obs[:, :, self.dset])
         for t in range(seq_len):
             fnn_out  = self.fnn2(feature_vector[:,t].unsqueeze(1))
             hidden_memory = hidden_memory*masks[:,t].view(1,-1,1)
@@ -380,13 +396,20 @@ class IAMPolicy(nn.Module):
     
     def evaluate_value(self, obs):
         
-        if self.image:
-            feature_vector = self.cnn(obs)
-        else:
-            feature_vector = self.fnn(obs)
-
         if self.dset is not None:
+            nondset_mask = np.ones(obs.shape[2], np.bool)
+            nondset_mask[self.dset] = 0
+            if self.image:
+                feature_vector = self.cnn(obs[:, :, nondset_mask])
+            else:
+                feature_vector = self.fnn(obs[:, :, nondset_mask])
             out = self.fnn3(obs[:, :, self.dset])
+        else:
+            if self.image:
+                feature_vector = self.cnn(obs)
+            else:
+                feature_vector = self.fnn(obs)
+            out = self.fnn3(obs)
         fnn_out  = self.fnn2(feature_vector)
         gru_out, _ = self.gru(out, self.hidden_memory)
         out = torch.cat((fnn_out, gru_out), 2).flatten(end_dim=1)

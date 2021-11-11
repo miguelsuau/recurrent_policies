@@ -5,8 +5,8 @@ from torch import nn
 from torch.distributions import Categorical
 import numpy as np
 
-HIDDEN_SIZE = 512
-HIDDEN_MEMORY_SIZE = 256
+HIDDEN_SIZE = 256
+HIDDEN_MEMORY_SIZE = 128
 NUM_FILTERS = [64, 64, 32]
 KERNEL_SIZE = [8, 4, 2]
 
@@ -289,34 +289,44 @@ class IAMPolicy(nn.Module):
         super(IAMPolicy, self).__init__()
         self.num_workers = num_workers
         self.recurrent = True
-        if isinstance(obs_size, list):
-            self.cnn = CNN(obs_size)
-            self.image = True
-        else:
-            self.image = False
-            self.fnn = nn.Sequential(
-                nn.Linear(obs_size-len(dset), 256),
-                nn.ReLU()
-                )
-        self.fnn2 = nn.Sequential(
-            nn.Linear(256, 128),
-            nn.ReLU()
-            )
+        
         if dset is not None:
+            if isinstance(obs_size, list):
+                self.cnn = CNN(obs_size)
+                self.image = True
+            else:
+                self.image = False
+                self.fnn = nn.Sequential(
+                    nn.Linear(obs_size-len(dset), 128),
+                    nn.ReLU()
+                    )
             self.fnn3 = nn.Sequential(
-                nn.Linear(len(dset), 256),
+                nn.Linear(len(dset), 128),
                 nn.ReLU()
                 )   
         else:
+            if isinstance(obs_size, list):
+                self.cnn = CNN(obs_size)
+                self.image = True
+            else:
+                self.image = False
+                self.fnn = nn.Sequential(
+                    nn.Linear(obs_size, 128),
+                    nn.ReLU()
+                    )
             self.fnn3 = nn.Sequential(
-                nn.Linear(obs_size, 256),
+                nn.Linear(obs_size, 128),
                 nn.ReLU()
                 )
-        self.gru = nn.GRU(256, 128, batch_first=True)
+        self.fnn2 = nn.Sequential(
+                nn.Linear(128, 64),
+                nn.ReLU()
+                )
+        self.gru = nn.GRU(128, 64, batch_first=True)
 
-        self.actor = nn.Linear(256, action_size)
-        self.critic = nn.Linear(256, 1)
-        self.hidden_memory_size = 128
+        self.actor = nn.Linear(128, action_size)
+        self.critic = nn.Linear(128, 1)
+        self.hidden_memory_size = 64
         self.hidden_memory = torch.zeros(1, 
             self.num_workers,
             self.hidden_memory_size
@@ -368,7 +378,7 @@ class IAMPolicy(nn.Module):
                 feature_vector = self.cnn(obs)
             else:
                 feature_vector = self.fnn(obs)
-            out = self.fnn3(obs)
+            out_fnn3 = self.fnn3(obs)
         seq_len = feature_vector.size(1)
         out = []
         # NOTE: We use masks to zero out hidden memory if last 

@@ -37,7 +37,11 @@ class GRUPolicy(nn.Module):
                 nn.ReLU()
                 )
             self.image = False
-        self.gru = nn.GRU(HIDDEN_SIZE, HIDDEN_MEMORY_SIZE, batch_first=True)
+        self.gru = nn.GRU(obs_size, HIDDEN_MEMORY_SIZE, batch_first=True)
+        self.fnn = nn.Sequential(
+                nn.Linear(HIDDEN_MEMORY_SIZE, HIDDEN_MEMORY_SIZE),
+                nn.ReLU()
+                )
         self.actor = nn.Linear(HIDDEN_MEMORY_SIZE, action_size)
         self.critic = nn.Linear(HIDDEN_MEMORY_SIZE, 1)
         self.hidden_memory_size = HIDDEN_MEMORY_SIZE
@@ -47,12 +51,13 @@ class GRUPolicy(nn.Module):
             )
 
     def forward(self, obs):
-        if self.image:
-            feature_vector = self.cnn(obs)
-        else:
-            feature_vector = self.fnn(obs)
+        # if self.image:
+        #     feature_vector = self.cnn(obs)
+        # else:
+        #     feature_vector = self.fnn(obs)
 
-        out, self.hidden_memory = self.gru(feature_vector, self.hidden_memory)
+        out, self.hidden_memory = self.gru(obs, self.hidden_memory)
+        out = self.fnn(out)
         logits = self.actor(out.flatten(end_dim=1))
         action_dist = Categorical(logits=logits)
         action = action_dist.sample()
@@ -64,12 +69,12 @@ class GRUPolicy(nn.Module):
 
     def evaluate_action(self, obs, action, old_hidden_memory, masks):
         
-        if self.image:
-            feature_vector = self.cnn(obs)
-        else:
-            feature_vector = self.fnn(obs) 
+        # if self.image:
+        #     feature_vector = self.cnn(obs)
+        # else:
+        #     feature_vector = self.fnn(obs) 
         
-        seq_len = feature_vector.size(1)
+        seq_len = obs.size(1)
         hidden_memories = []
         # NOTE: We use masks to zero out hidden memory if last 
         # step belongs to previous episode. Mask_{t-1}*hidden_memory_t
@@ -77,11 +82,12 @@ class GRUPolicy(nn.Module):
         hidden_memory = old_hidden_memory[:,0].unsqueeze(0)
         for t in range(seq_len):
             out, hidden_memory = self.gru(
-                feature_vector[:,t].unsqueeze(1), 
+                obs[:,t].unsqueeze(1), 
                 hidden_memory*masks[:,t].view(1,-1,1)
                 )
             hidden_memories.append(out)
         hidden_memories = torch.cat(hidden_memories, 1).flatten(end_dim=1)
+        hidden_memories = self.fnn(hidden_memories)
         log_probs = self.actor(hidden_memories)
         action_dist = Categorical(logits=log_probs)
         log_prob =  action_dist.log_prob(action)
@@ -93,11 +99,12 @@ class GRUPolicy(nn.Module):
 
     def evaluate_value(self, obs):
         
-        if self.image:
-            feature_vector = self.cnn(obs)
-        else:
-            feature_vector = self.fnn(obs)
-        out, _ = self.gru(feature_vector, self.hidden_memory)
+        # if self.image:
+        #     feature_vector = self.cnn(obs)
+        # else:
+        #     feature_vector = self.fnn(obs)
+        out, _ = self.gru(obs, self.hidden_memory)
+        out = self.fnn(out)
         value = self.critic(out.flatten(end_dim=1))
         return value
 

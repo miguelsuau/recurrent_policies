@@ -5,8 +5,6 @@ from torch import nn
 from torch.distributions import Categorical
 import numpy as np
 
-HIDDEN_SIZE = 256
-HIDDEN_MEMORY_SIZE = 128
 NUM_FILTERS = [64, 64, 32]
 KERNEL_SIZE = [8, 4, 2]
 
@@ -24,7 +22,7 @@ class CNN(nn.Module):
         
 class GRUPolicy(nn.Module):
 
-    def __init__(self, obs_size, action_size, num_workers):
+    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers):
         super(GRUPolicy, self).__init__()
         self.num_workers = num_workers
         self.recurrent = True
@@ -33,18 +31,18 @@ class GRUPolicy(nn.Module):
             self.image = True
         else:
             self.fnn = nn.Sequential(
-                nn.Linear(obs_size, HIDDEN_SIZE),
+                nn.Linear(obs_size, hidden_size),
                 nn.ReLU()
                 )
             self.image = False
-        self.gru = nn.GRU(obs_size, HIDDEN_MEMORY_SIZE, batch_first=True)
+        self.gru = nn.GRU(obs_size, hidden_size, batch_first=True)
         self.fnn = nn.Sequential(
-                nn.Linear(HIDDEN_MEMORY_SIZE, HIDDEN_MEMORY_SIZE),
+                nn.Linear(hidden_size, hidden_size_2),
                 nn.ReLU()
                 )
-        self.actor = nn.Linear(HIDDEN_MEMORY_SIZE, action_size)
-        self.critic = nn.Linear(HIDDEN_MEMORY_SIZE, 1)
-        self.hidden_memory_size = HIDDEN_MEMORY_SIZE
+        self.actor = nn.Linear(hidden_size_2, action_size)
+        self.critic = nn.Linear(hidden_size_2, 1)
+        self.hidden_memory_size = hidden_size
         self.hidden_memory = torch.zeros(1, 
             self.num_workers,
             self.hidden_memory_size
@@ -130,14 +128,14 @@ class ModifiedGRUPolicy(nn.Module):
         else:
             self.image = False
             self.fnn = nn.Sequential(
-                nn.Linear(obs_size, HIDDEN_SIZE),
+                nn.Linear(obs_size, hidden_size),
                 nn.ReLU()
                 )
             self.fnn2 = nn.Sequential(
-                nn.Linear(HIDDEN_SIZE+HIDDEN_MEMORY_SIZE, HIDDEN_MEMORY_SIZE),
+                nn.Linear(hidden_size+HIDDEN_MEMORY_SIZE, HIDDEN_MEMORY_SIZE),
                 nn.ReLU()
                 )
-        self.gru = nn.GRU(HIDDEN_SIZE, HIDDEN_MEMORY_SIZE, batch_first=True)
+        self.gru = nn.GRU(hidden_size, HIDDEN_MEMORY_SIZE, batch_first=True)
         self.actor = nn.Linear(HIDDEN_MEMORY_SIZE, action_size)
         self.critic = nn.Linear(HIDDEN_MEMORY_SIZE, 1)
         self.hidden_memory_size = HIDDEN_MEMORY_SIZE
@@ -219,7 +217,7 @@ class ModifiedGRUPolicy(nn.Module):
 
 class FNNPolicy(nn.Module):
 
-    def __init__(self, obs_size, action_size, num_workers):
+    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers):
         super(FNNPolicy, self).__init__()
         self.num_workers = num_workers
         self.recurrent = False
@@ -228,16 +226,16 @@ class FNNPolicy(nn.Module):
             self.image = True
         else:
             self.fnn = nn.Sequential(
-                nn.Linear(obs_size, HIDDEN_SIZE),
+                nn.Linear(obs_size, hidden_size),
                 nn.ReLU()
                 )
             self.image = False
         self.fnn2 = nn.Sequential(
-            nn.Linear(HIDDEN_SIZE, HIDDEN_MEMORY_SIZE),
+            nn.Linear(hidden_size, hidden_size_2),
             nn.ReLU()
             )
-        self.actor = nn.Linear(HIDDEN_MEMORY_SIZE, action_size)
-        self.critic = nn.Linear(HIDDEN_MEMORY_SIZE, 1)
+        self.actor = nn.Linear(hidden_size_2, action_size)
+        self.critic = nn.Linear(hidden_size_2, 1)
 
     
     def forward(self, obs):
@@ -292,7 +290,7 @@ class FNNPolicy(nn.Module):
 
 class IAMPolicy(nn.Module):
 
-    def __init__(self, obs_size, action_size, num_workers, dset=None):
+    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, dset=None):
         super(IAMPolicy, self).__init__()
         self.num_workers = num_workers
         self.recurrent = True
@@ -304,10 +302,10 @@ class IAMPolicy(nn.Module):
             else:
                 self.image = False
                 self.fnn = nn.Sequential(
-                    nn.Linear(obs_size-len(dset), 128),
+                    nn.Linear(obs_size-len(dset), hidden_size//2),
                     nn.ReLU()
                     )
-            self.gru = nn.GRU(len(dset), 128, batch_first=True)
+            self.gru = nn.GRU(len(dset), hidden_size//2, batch_first=True)
         else:
             if isinstance(obs_size, list):
                 self.cnn = CNN(obs_size)
@@ -315,19 +313,19 @@ class IAMPolicy(nn.Module):
             else:
                 self.image = False
                 self.fnn = nn.Sequential(
-                    nn.Linear(obs_size, 128),
+                    nn.Linear(obs_size, hidden_size//2),
                     nn.ReLU()
                     )
-            self.gru = nn.GRU(obs_size, 128, batch_first=True)
+            self.gru = nn.GRU(obs_size, hidden_size//2, batch_first=True)
 
         self.fnn2 = nn.Sequential(
-                nn.Linear(256, 128),
+                nn.Linear(hidden_size, hidden_size_2),
                 nn.ReLU()
                 )
 
-        self.actor = nn.Linear(128, action_size)
-        self.critic = nn.Linear(128, 1)
-        self.hidden_memory_size = 128
+        self.actor = nn.Linear(hidden_size_2, action_size)
+        self.critic = nn.Linear(hidden_size_2, 1)
+        self.hidden_memory_size = hidden_size_2
         self.hidden_memory = torch.zeros(1, 
             self.num_workers,
             self.hidden_memory_size
@@ -455,12 +453,12 @@ class FNNFSPolicy(nn.Module):
             self.image = True
         else:
             self.fnn = nn.Sequential(
-                nn.Linear(obs_size+len(dset)*(n_stack-1), HIDDEN_SIZE),
+                nn.Linear(obs_size+len(dset)*(n_stack-1), hidden_size),
                 nn.ReLU()
                 )
             self.image = False
         self.fnn2 = nn.Sequential(
-            nn.Linear(HIDDEN_SIZE, HIDDEN_MEMORY_SIZE),
+            nn.Linear(hidden_size, HIDDEN_MEMORY_SIZE),
             nn.ReLU()
             )
         self.actor = nn.Linear(HIDDEN_MEMORY_SIZE, action_size)

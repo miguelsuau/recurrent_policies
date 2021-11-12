@@ -26,15 +26,6 @@ class GRUPolicy(nn.Module):
         super(GRUPolicy, self).__init__()
         self.num_workers = num_workers
         self.recurrent = True
-        if isinstance(obs_size, list):
-            self.cnn = CNN(3)
-            self.image = True
-        else:
-            self.fnn = nn.Sequential(
-                nn.Linear(obs_size, hidden_size),
-                nn.ReLU()
-                )
-            self.image = False
         self.gru = nn.GRU(obs_size, hidden_size, batch_first=True)
         self.fnn = nn.Sequential(
                 nn.Linear(hidden_size, hidden_size_2),
@@ -49,10 +40,6 @@ class GRUPolicy(nn.Module):
             )
 
     def forward(self, obs):
-        # if self.image:
-        #     feature_vector = self.cnn(obs)
-        # else:
-        #     feature_vector = self.fnn(obs)
 
         out, self.hidden_memory = self.gru(obs, self.hidden_memory)
         out = self.fnn(out)
@@ -67,11 +54,7 @@ class GRUPolicy(nn.Module):
 
     def evaluate_action(self, obs, action, old_hidden_memory, masks):
         
-        # if self.image:
-        #     feature_vector = self.cnn(obs)
-        # else:
-        #     feature_vector = self.fnn(obs) 
-        
+
         seq_len = obs.size(1)
         hidden_memories = []
         # NOTE: We use masks to zero out hidden memory if last 
@@ -325,7 +308,7 @@ class IAMPolicy(nn.Module):
 
         self.actor = nn.Linear(hidden_size_2, action_size)
         self.critic = nn.Linear(hidden_size_2, 1)
-        self.hidden_memory_size = hidden_size_2
+        self.hidden_memory_size = hidden_size//2
         self.hidden_memory = torch.zeros(1, 
             self.num_workers,
             self.hidden_memory_size

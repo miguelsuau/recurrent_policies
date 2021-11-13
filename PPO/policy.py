@@ -266,10 +266,10 @@ class FNNPolicy(nn.Module):
 
 
 
-class IAMPolicy(nn.Module):
+class IAMGRUPolicy(nn.Module):
 
     def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, dset=None):
-        super(IAMPolicy, self).__init__()
+        super(IAMGRUPolicy, self).__init__()
         self.num_workers = num_workers
         self.recurrent = True
         
@@ -415,7 +415,7 @@ class IAMPolicy(nn.Module):
             )
     
     def get_architecture(self):
-        return 'IAM'
+        return 'IAMGRU'
 
 class FNNFSPolicy(nn.Module):
 
@@ -569,3 +569,157 @@ class LSTMPolicy(nn.Module):
 
     def get_architecture(self):
         return 'LSTM'
+
+
+
+class IAMLSTMPolicy(nn.Module):
+
+    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, dset=None):
+        super(IAMLSTMPolicy, self).__init__()
+        self.num_workers = num_workers
+        self.recurrent = True
+        
+        if dset is not None:
+            if isinstance(obs_size, list):
+                self.cnn = CNN(obs_size)
+                self.image = True
+            else:
+                self.image = False
+                self.fnn = nn.Sequential(
+                    nn.Linear(obs_size-len(dset), hidden_size//2),
+                    nn.ReLU()
+                    )
+            self.lstm = nn.LSTM(len(dset), hidden_size//2, batch_first=True)
+        else:
+            if isinstance(obs_size, list):
+                self.cnn = CNN(obs_size)
+                self.image = True
+            else:
+                self.image = False
+                self.fnn = nn.Sequential(
+                    nn.Linear(obs_size, hidden_size//2),
+                    nn.ReLU()
+                    )
+            self.lstm = nn.LSTM(obs_size, hidden_size//2, batch_first=True)
+
+        self.fnn2 = nn.Sequential(
+                nn.Linear(hidden_size, hidden_size_2),
+                nn.ReLU()
+                )
+
+        self.actor = nn.Linear(hidden_size_2, action_size)
+        self.critic = nn.Linear(hidden_size_2, 1)
+        self.hidden_memory_size = hidden_size//2
+        self.h = torch.zeros(1, self.num_workers, self.hidden_memory_size)
+        self.c = torch.zeros(1, self.num_workers, self.hidden_memory_size)
+        self.hidden_memory = (self.h, self.c)
+        self.dset = dset
+
+    
+    def forward(self, obs):
+        if self.dset is not None:
+            nondset_mask = np.ones(obs.shape[2], np.bool)
+            nondset_mask[self.dset] = 0
+            if self.image:
+                feature_vector = self.cnn(obs[:, :, nondset_mask])
+            else:
+                feature_vector = self.fnn(obs[:, :, nondset_mask])
+            dset = obs[:, :, self.dset]
+            
+        else:
+            if self.image:
+                feature_vector = self.cnn(obs)
+            else:
+                feature_vector = self.fnn(obs)
+            dset = obs
+        
+        lstm_out, self.hidden_memory = self.lstm(dset, self.hidden_memory)
+        out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
+        out  = self.fnn2(out)
+
+        logits = self.actor(out)
+        action_dist = Categorical(logits=logits)
+        action = action_dist.sample()
+        log_prob = action_dist.log_prob(action)
+
+        value = self.critic(out)
+
+        return action, value, log_prob
+
+    
+    def evaluate_action(self, obs, action, old_hidden_memory, masks):
+        
+        if self.dset is not None:
+            nondset_mask = np.ones(obs.shape[2], np.bool)
+            nondset_mask[self.dset] = 0
+            if self.image:
+                feature_vector = self.cnn(obs[:, :, nondset_mask])
+            else:
+                feature_vector = self.fnn(obs[:, :, nondset_mask])
+            dset = obs[:, :, self.dset] 
+        else:
+            if self.image:
+                feature_vector = self.cnn(obs)
+            else:
+                feature_vector = self.fnn(obs)
+            dset = obs
+        seq_len = feature_vector.size(1)
+        out = []
+        # NOTE: We use masks to zero out hidden memory if last 
+        # step belongs to previous episode. Mask_{t-1}*hidden_memory_t
+        masks = torch.cat((torch.ones(masks.size(0), 1), masks), dim=1)
+        h = old_hidden_memory[0][:,0].unsqueeze(0)
+        c = old_hidden_memory[1][:,0].unsqueeze(0)
+        for t in range(seq_len):
+            hidden_memory = (h*masks[:,t].view(1,-1,1), c*masks[:,t].view(1,-1,1))
+            lstm_out, hidden_memory = self.lstm(
+                dset[:,t].unsqueeze(1), 
+                hidden_memory
+                )
+            h = hidden_memory[0]
+            c = hidden_memory[1]
+            out.append(torch.cat((feature_vector[:,t].unsqueeze(1), lstm_out), 2))
+        out = torch.cat(out, 1).flatten(end_dim=1)
+        out = self.fnn2(out)
+        log_probs = self.actor(out)
+        action_dist = Categorical(logits=log_probs)
+        log_prob =  action_dist.log_prob(action)
+        entropy = action_dist.entropy()
+
+        value = self.critic(out)
+
+        return value, log_prob, entropy
+
+    
+    def evaluate_value(self, obs):
+        
+        if self.dset is not None:
+            nondset_mask = np.ones(obs.shape[2], np.bool)
+            nondset_mask[self.dset] = 0
+            if self.image:
+                feature_vector = self.cnn(obs[:, :, nondset_mask])
+            else:
+                feature_vector = self.fnn(obs[:, :, nondset_mask])
+            dset = obs[:, :, self.dset]
+        else:
+            if self.image:
+                feature_vector = self.cnn(obs)
+            else:
+                feature_vector = self.fnn(obs)
+            dset = obs
+            
+        lstm_out, _ = self.lstm(dset, self.hidden_memory)
+        out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
+        out  = self.fnn2(out)
+        value = self.critic(out)
+
+        return value
+
+    
+    def reset_hidden_memory(self, worker):
+        self.c[:, worker] = torch.zeros(1, 1, self.hidden_memory_size)
+        self.h[:, worker] = torch.zeros(1, 1, self.hidden_memory_size)
+        self.hidden_memory = (self.h, self.c)
+
+    def get_architecture(self):
+        return 'IAM'

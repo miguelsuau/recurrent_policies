@@ -73,7 +73,7 @@ class Agent(object):
         self.buffer['values'].append(value.flatten().detach().numpy())
         self.buffer['log_probs'].append(log_probs.flatten().detach().numpy())
         if self.recurrent_policy:
-            if self.policy.get_architecture() == 'GRU':
+            if 'GRU' in self.policy.get_architecture():
                 self.buffer['hidden_memories'].append(hidden_memory.squeeze(0).detach().numpy())
             else:
                 self.buffer['h'].append(hidden_memory[0].squeeze(0).detach().numpy())
@@ -158,7 +158,7 @@ class Agent(object):
         obs = torch.FloatTensor(batch['obs']).flatten(end_dim=1)
         actions = torch.FloatTensor(batch['actions']).flatten()
         if self.recurrent_policy:
-            if self.policy.get_architecture() == 'GRU':
+            if 'GRU' in self.policy.get_architecture():
                 old_hidden_memories = torch.FloatTensor(batch['hidden_memories']).flatten(end_dim=1)
             else:
                 h = torch.FloatTensor(batch['h']).flatten(end_dim=1)

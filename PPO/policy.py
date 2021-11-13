@@ -268,7 +268,7 @@ class FNNPolicy(nn.Module):
 
 class IAMGRUPolicy(nn.Module):
 
-    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, dset=None):
+    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, dset=None, dset_size=0):
         super(IAMGRUPolicy, self).__init__()
         self.num_workers = num_workers
         self.recurrent = True
@@ -294,7 +294,8 @@ class IAMGRUPolicy(nn.Module):
                     nn.Linear(obs_size, hidden_size//2),
                     nn.ReLU()
                     )
-            self.gru = nn.GRU(obs_size, hidden_size//2, batch_first=True)
+                self.dhat = nn.Linear(obs_size, dset_size)
+            self.gru = nn.GRU(dset_size, hidden_size//2, batch_first=True)
 
         self.fnn2 = nn.Sequential(
                 nn.Linear(hidden_size, hidden_size_2),
@@ -326,7 +327,7 @@ class IAMGRUPolicy(nn.Module):
                 feature_vector = self.cnn(obs)
             else:
                 feature_vector = self.fnn(obs)
-            dset = obs
+            dset = self.dhat(obs)
         
         gru_out, self.hidden_memory = self.gru(dset, self.hidden_memory)
         out = torch.cat((feature_vector, gru_out), 2).flatten(end_dim=1)
@@ -357,7 +358,7 @@ class IAMGRUPolicy(nn.Module):
                 feature_vector = self.cnn(obs)
             else:
                 feature_vector = self.fnn(obs)
-            dset = obs
+            dset = self.dhat(obs)
         seq_len = feature_vector.size(1)
         out = []
         # NOTE: We use masks to zero out hidden memory if last 
@@ -398,7 +399,7 @@ class IAMGRUPolicy(nn.Module):
                 feature_vector = self.cnn(obs)
             else:
                 feature_vector = self.fnn(obs)
-            dset = obs
+            dset = self.dhat(obs)
             
         gru_out, _ = self.gru(dset, self.hidden_memory)
         out = torch.cat((feature_vector, gru_out), 2).flatten(end_dim=1)

@@ -509,13 +509,14 @@ class LSTMPolicy(nn.Module):
         self.actor = nn.Linear(hidden_size_2, action_size)
         self.critic = nn.Linear(hidden_size_2, 1)
         self.hidden_memory_size = hidden_size
-        self.h = torch.zeros(1, self.num_workers, self.hidden_memory_size)
-        self.c = torch.zeros(1, self.num_workers, self.hidden_memory_size)
-        self.hidden_memory = (self.h, self.c)
+        h = torch.zeros(1, self.num_workers, self.hidden_memory_size)
+        c = torch.zeros(1, self.num_workers, self.hidden_memory_size)
+        self.hidden_memory = (h, c)
 
     def forward(self, obs):
 
         out, self.hidden_memory = self.lstm(obs, self.hidden_memory)
+
         out = self.fnn(out)
         logits = self.actor(out.flatten(end_dim=1))
         action_dist = Categorical(logits=logits)
@@ -534,16 +535,15 @@ class LSTMPolicy(nn.Module):
         # NOTE: We use masks to zero out hidden memory if last 
         # step belongs to previous episode. Mask_{t-1}*hidden_memory_t
         masks = torch.cat((torch.ones(masks.size(0), 1), masks), dim=1)
-        h = old_hidden_memory[0][:,0].unsqueeze(0)
-        c = old_hidden_memory[1][:,0].unsqueeze(0)
+        hidden_memory = (old_hidden_memory[0][:,0].unsqueeze(0),
+            old_hidden_memory[1][:,0].unsqueeze(0))
         for t in range(seq_len):
-            hidden_memory = (h*masks[:,t].view(1,-1,1), c*masks[:,t].view(1,-1,1))
+            hidden_memory = (hidden_memory[0]*masks[:,t].view(1,-1,1), 
+                hidden_memory[1]*masks[:,t].view(1,-1,1))
             out, hidden_memory = self.lstm(
                 obs[:,t].unsqueeze(1), 
                 hidden_memory
                 )
-            h = hidden_memory[0]
-            c = hidden_memory[1]
             hidden_memories.append(out)
         hidden_memories = torch.cat(hidden_memories, 1).flatten(end_dim=1)
         hidden_memories = self.fnn(hidden_memories)
@@ -563,9 +563,8 @@ class LSTMPolicy(nn.Module):
         return value
 
     def reset_hidden_memory(self, worker):
-        self.c[:, worker] = torch.zeros(1, 1, self.hidden_memory_size)
-        self.h[:, worker] = torch.zeros(1, 1, self.hidden_memory_size)
-        self.hidden_memory = (self.h, self.c)
+        self.hidden_memory[1][:, worker] = torch.zeros(1, 1, self.hidden_memory_size)
+        self.hidden_memory[0][:, worker] = torch.zeros(1, 1, self.hidden_memory_size)
 
     def get_architecture(self):
         return 'LSTM'
@@ -610,9 +609,9 @@ class IAMLSTMPolicy(nn.Module):
         self.actor = nn.Linear(hidden_size_2, action_size)
         self.critic = nn.Linear(hidden_size_2, 1)
         self.hidden_memory_size = hidden_size//2
-        self.h = torch.zeros(1, self.num_workers, self.hidden_memory_size)
-        self.c = torch.zeros(1, self.num_workers, self.hidden_memory_size)
-        self.hidden_memory = (self.h, self.c)
+        h = torch.zeros(1, self.num_workers, self.hidden_memory_size)
+        c = torch.zeros(1, self.num_workers, self.hidden_memory_size)
+        self.hidden_memory = (h, c)
         self.dset = dset
 
     
@@ -717,9 +716,8 @@ class IAMLSTMPolicy(nn.Module):
 
     
     def reset_hidden_memory(self, worker):
-        self.c[:, worker] = torch.zeros(1, 1, self.hidden_memory_size)
-        self.h[:, worker] = torch.zeros(1, 1, self.hidden_memory_size)
-        self.hidden_memory = (self.h, self.c)
+        self.hidden_memory[1][:, worker] = torch.zeros(1, 1, self.hidden_memory_size)
+        self.hidden_memory[0][:, worker] = torch.zeros(1, 1, self.hidden_memory_size)
 
     def get_architecture(self):
         return 'IAM'

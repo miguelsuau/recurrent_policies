@@ -95,7 +95,7 @@ class Agent(object):
             np.array(batch['rewards']), 
             np.array(batch['values']), 
             np.array(batch['dones']),
-            last_value.flatten().detach().numpy(), 
+            last_value.flatten().detach().numpy(),
             gamma, lambd
             )
         self.buffer['advantages'].extend(advantages)
@@ -162,7 +162,7 @@ class Agent(object):
                 old_hidden_memories = torch.FloatTensor(batch['hidden_memories']).flatten(end_dim=1)
             else:
                 h = torch.FloatTensor(batch['h']).flatten(end_dim=1)
-                c = torch.FloatTensor(batch['h']).flatten(end_dim=1)
+                c = torch.FloatTensor(batch['c']).flatten(end_dim=1)
                 old_hidden_memories = (h, c)
 
         else:

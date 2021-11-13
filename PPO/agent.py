@@ -1,5 +1,7 @@
 from random import shuffle
 import sys
+
+from recurrent_policies.PPO.policy import GRUPolicy
 sys.path.append("..") 
 from recurrent_policies.PPO.buffer import Buffer
 import numpy as np
@@ -71,7 +73,11 @@ class Agent(object):
         self.buffer['values'].append(value.flatten().detach().numpy())
         self.buffer['log_probs'].append(log_probs.flatten().detach().numpy())
         if self.recurrent_policy:
-            self.buffer['hidden_memories'].append(hidden_memory.squeeze(0).detach().numpy())
+            if self.policy.get_architecture() == 'GRU':
+                self.buffer['hidden_memories'].append(hidden_memory.squeeze(0).detach().numpy())
+            else:
+                self.buffer['h'].append(hidden_memory[0].squeeze(0).detach().numpy())
+                self.buffer['c'].append(hidden_memory[1].squeeze(0).detach().numpy())
             # self.buffer['prev_action'].append(prev_action)
     
     def bootstrap(self, obs, rollout_steps, gamma=0.99, lambd=0.95):
@@ -152,7 +158,13 @@ class Agent(object):
         obs = torch.FloatTensor(batch['obs']).flatten(end_dim=1)
         actions = torch.FloatTensor(batch['actions']).flatten()
         if self.recurrent_policy:
-            old_hidden_memories = torch.FloatTensor(batch['hidden_memories']).flatten(end_dim=1)
+            if self.policy.get_architecture() == 'GRU':
+                old_hidden_memories = torch.FloatTensor(batch['hidden_memories']).flatten(end_dim=1)
+            else:
+                h = torch.FloatTensor(batch['h']).flatten(end_dim=1)
+                c = torch.FloatTensor(batch['h']).flatten(end_dim=1)
+                old_hidden_memories = (h, c)
+
         else:
             old_hidden_memories = None
         masks = torch.FloatTensor(batch['masks']).flatten(end_dim=1)

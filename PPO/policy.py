@@ -574,7 +574,7 @@ class LSTMPolicy(nn.Module):
 
 class IAMLSTMPolicy(nn.Module):
 
-    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, dset=None):
+    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, dset=None, dset_size=0):
         super(IAMLSTMPolicy, self).__init__()
         self.num_workers = num_workers
         self.recurrent = True

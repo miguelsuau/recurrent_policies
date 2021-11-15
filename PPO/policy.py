@@ -517,7 +517,6 @@ class LSTMPolicy(nn.Module):
     def forward(self, obs):
 
         out, self.hidden_memory = self.lstm(obs, self.hidden_memory)
-
         out = self.fnn(out)
         logits = self.actor(out.flatten(end_dim=1))
         action_dist = Categorical(logits=logits)
@@ -586,7 +585,7 @@ class IAMLSTMPolicy(nn.Module):
             else:
                 self.image = False
                 self.fnn = nn.Sequential(
-                    nn.Linear(obs_size, hidden_size),
+                    nn.Linear(obs_size - len(dset), hidden_size),
                     nn.ReLU()
                     )
             self.lstm = nn.LSTM(len(dset), hidden_memory_size, batch_first=True)
@@ -618,12 +617,12 @@ class IAMLSTMPolicy(nn.Module):
     
     def forward(self, obs):
         if self.dset is not None:
-            # nondset_mask = np.ones(obs.shape[2], np.bool)
-            # nondset_mask[self.dset] = 0
+            nondset_mask = np.ones(obs.shape[2], np.bool)
+            nondset_mask[self.dset] = 0
             if self.image:
                 feature_vector = self.cnn(obs)
             else:
-                feature_vector = self.fnn(obs)
+                feature_vector = self.fnn(obs[:, :, nondset_mask])
             dset = obs[:, :, self.dset]
         else:
             if self.image:
@@ -633,15 +632,15 @@ class IAMLSTMPolicy(nn.Module):
             dset = obs
         
         lstm_out, self.hidden_memory = self.lstm(dset, self.hidden_memory)
-        out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
+        out = torch.cat((feature_vector, lstm_out), 2)
         out  = self.fnn2(out)
 
-        logits = self.actor(out)
+        logits = self.actor(out.flatten(end_dim=1))
         action_dist = Categorical(logits=logits)
         action = action_dist.sample()
         log_prob = action_dist.log_prob(action)
 
-        value = self.critic(out)
+        value = self.critic(out.flatten(end_dim=1))
 
         return action, value, log_prob
 
@@ -649,12 +648,12 @@ class IAMLSTMPolicy(nn.Module):
     def evaluate_action(self, obs, action, old_hidden_memory, masks):
         
         if self.dset is not None:
-            # nondset_mask = np.ones(obs.shape[2], np.bool)
-            # nondset_mask[self.dset] = 0
+            nondset_mask = np.ones(obs.shape[2], np.bool)
+            nondset_mask[self.dset] = 0
             if self.image:
                 feature_vector = self.cnn(obs)
             else:
-                feature_vector = self.fnn(obs)
+                feature_vector = self.fnn(obs[:, :, nondset_mask])
             dset = obs[:, :, self.dset] 
         else:
             if self.image:
@@ -692,12 +691,12 @@ class IAMLSTMPolicy(nn.Module):
     def evaluate_value(self, obs):
         
         if self.dset is not None:
-            # nondset_mask = np.ones(obs.shape[2], np.bool)
-            # nondset_mask[self.dset] = 0
+            nondset_mask = np.ones(obs.shape[2], np.bool)
+            nondset_mask[self.dset] = 0
             if self.image:
                 feature_vector = self.cnn(obs)
             else:
-                feature_vector = self.fnn(obs)
+                feature_vector = self.fnn(obs[:, :, nondset_mask])
             dset = obs[:, :, self.dset]
         else:
             if self.image:
@@ -707,9 +706,9 @@ class IAMLSTMPolicy(nn.Module):
             dset = obs
             
         lstm_out, _ = self.lstm(dset, self.hidden_memory)
-        out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
+        out = torch.cat((feature_vector, lstm_out), 2)
         out  = self.fnn2(out)
-        value = self.critic(out)
+        value = self.critic(out.flatten(end_dim=1))
 
         return value
 

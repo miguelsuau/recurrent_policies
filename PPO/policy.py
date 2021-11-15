@@ -573,8 +573,8 @@ class LSTMPolicy(nn.Module):
 
 
 class IAMLSTMPolicy(nn.Module):
-
-    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, dset=None, dset_size=0):
+    
+    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, hidden_memory_size, num_workers, dset=None, dset_size=0):
         super(IAMLSTMPolicy, self).__init__()
         self.num_workers = num_workers
         self.recurrent = True
@@ -586,10 +586,10 @@ class IAMLSTMPolicy(nn.Module):
             else:
                 self.image = False
                 self.fnn = nn.Sequential(
-                    nn.Linear(obs_size, hidden_size//2),
+                    nn.Linear(obs_size, hidden_size),
                     nn.ReLU()
                     )
-            self.lstm = nn.LSTM(len(dset), hidden_size//2, batch_first=True)
+            self.lstm = nn.LSTM(len(dset), hidden_memory_size, batch_first=True)
         else:
             if isinstance(obs_size, list):
                 self.cnn = CNN(obs_size)
@@ -597,19 +597,19 @@ class IAMLSTMPolicy(nn.Module):
             else:
                 self.image = False
                 self.fnn = nn.Sequential(
-                    nn.Linear(obs_size, hidden_size//2),
+                    nn.Linear(obs_size, hidden_size),
                     nn.ReLU()
                     )
-            self.lstm = nn.LSTM(obs_size, hidden_size//2, batch_first=True)
+            self.lstm = nn.LSTM(obs_size, hidden_memory_size, batch_first=True)
 
         self.fnn2 = nn.Sequential(
-                nn.Linear(hidden_size, hidden_size_2),
+                nn.Linear(hidden_size+hidden_memory_size, hidden_size_2),
                 nn.ReLU()
                 )
 
         self.actor = nn.Linear(hidden_size_2, action_size)
         self.critic = nn.Linear(hidden_size_2, 1)
-        self.hidden_memory_size = hidden_size//2
+        self.hidden_memory_size = hidden_memory_size
         h = torch.zeros(1, self.num_workers, self.hidden_memory_size)
         c = torch.zeros(1, self.num_workers, self.hidden_memory_size)
         self.hidden_memory = (h, c)

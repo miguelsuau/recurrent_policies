@@ -1,7 +1,5 @@
 from random import shuffle
 import sys
-
-from recurrent_policies.PPO.policy import GRUPolicy
 sys.path.append("..") 
 from recurrent_policies.PPO.buffer import Buffer
 import numpy as np

@@ -268,7 +268,7 @@ class FNNPolicy(nn.Module):
 
 class IAMGRUPolicy(nn.Module):
 
-    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, dset=None, dset_size=0):
+    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, hidden_memory_size, num_workers, dset=None, dset_size=0):
         super(IAMGRUPolicy, self).__init__()
         self.num_workers = num_workers
         self.recurrent = True
@@ -625,7 +625,6 @@ class IAMLSTMPolicy(nn.Module):
             else:
                 feature_vector = self.fnn(obs)
             dset = obs[:, :, self.dset]
-            
         else:
             if self.image:
                 feature_vector = self.cnn(obs)
@@ -668,16 +667,15 @@ class IAMLSTMPolicy(nn.Module):
         # NOTE: We use masks to zero out hidden memory if last 
         # step belongs to previous episode. Mask_{t-1}*hidden_memory_t
         masks = torch.cat((torch.ones(masks.size(0), 1), masks), dim=1)
-        h = old_hidden_memory[0][:,0].unsqueeze(0)
-        c = old_hidden_memory[1][:,0].unsqueeze(0)
+        hidden_memory = (old_hidden_memory[0][:,0].unsqueeze(0),
+            old_hidden_memory[1][:,0].unsqueeze(0))
         for t in range(seq_len):
-            hidden_memory = (h*masks[:,t].view(1,-1,1), c*masks[:,t].view(1,-1,1))
+            hidden_memory = (hidden_memory[0]*masks[:,t].view(1,-1,1), 
+                hidden_memory[1]*masks[:,t].view(1,-1,1))
             lstm_out, hidden_memory = self.lstm(
                 dset[:,t].unsqueeze(1), 
                 hidden_memory
                 )
-            h = hidden_memory[0]
-            c = hidden_memory[1]
             out.append(torch.cat((feature_vector[:,t].unsqueeze(1), lstm_out), 2))
         out = torch.cat(out, 1).flatten(end_dim=1)
         out = self.fnn2(out)

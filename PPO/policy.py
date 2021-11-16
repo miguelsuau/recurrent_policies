@@ -588,7 +588,9 @@ class IAMLSTMPolicy(nn.Module):
                     nn.Linear(obs_size, hidden_size),
                     nn.ReLU()
                     )
+                self.fnn.apply(init_weights)
             self.lstm = nn.LSTM(len(dset), hidden_memory_size, batch_first=True)
+            self.lstm.apply(init_weights)
         else:
             if isinstance(obs_size, list):
                 self.cnn = CNN(obs_size)
@@ -599,15 +601,19 @@ class IAMLSTMPolicy(nn.Module):
                     nn.Linear(obs_size, hidden_size),
                     nn.ReLU()
                     )
+                self.fnn.apply(init_weights)
             self.lstm = nn.LSTM(obs_size, hidden_memory_size, batch_first=True)
-
+            self.lstm.apply(init_weights)
         self.fnn2 = nn.Sequential(
                 nn.Linear(hidden_size+hidden_memory_size, hidden_size_2),
                 nn.Tanh()
                 )
+        self.fnn2.apply(init_weights)
 
         self.actor = nn.Linear(hidden_size_2, action_size)
+        self.actor.apply(init_weights)
         self.critic = nn.Linear(hidden_size_2, 1)
+        self.critic.apply(init_weights)
         self.hidden_memory_size = hidden_memory_size
         h = torch.zeros(1, self.num_workers, self.hidden_memory_size)
         c = torch.zeros(1, self.num_workers, self.hidden_memory_size)
@@ -719,3 +725,8 @@ class IAMLSTMPolicy(nn.Module):
 
     def get_architecture(self):
         return 'IAM'
+
+def init_weights(m):
+    if isinstance(m, nn.Linear):
+        torch.nn.init.orthogonal_(m.weight)
+        torch.nn.init.constant_(m.bias, 0.0)

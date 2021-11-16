@@ -624,7 +624,6 @@ class IAMLSTMPolicy(nn.Module):
             else:
                 feature_vector = self.fnn(obs)#[:, :, nondset_mask])
             dset = obs[:, :, self.dset]
-            breakpoint()
         else:
             if self.image:
                 feature_vector = self.cnn(obs)

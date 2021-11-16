@@ -503,12 +503,16 @@ class LSTMPolicy(nn.Module):
         self.num_workers = num_workers
         self.recurrent = True
         self.lstm = nn.LSTM(obs_size, hidden_size, batch_first=True)
+        self.lstm.apply(init_weights)
         self.fnn = nn.Sequential(
                 nn.Linear(hidden_size, hidden_size_2),
                 nn.Tanh()
                 )
+        self.fnn.apply(init_weights)
         self.actor = nn.Linear(hidden_size_2, action_size)
+        self.actor.apply(init_weights)
         self.critic = nn.Linear(hidden_size_2, 1)
+        self.critic.apply(init_weights)
         self.hidden_memory_size = hidden_size
         h = torch.zeros(1, self.num_workers, self.hidden_memory_size)
         c = torch.zeros(1, self.num_workers, self.hidden_memory_size)

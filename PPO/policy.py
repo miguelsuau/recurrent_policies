@@ -586,7 +586,7 @@ class IAMLSTMPolicy(nn.Module):
                 self.image = False
                 self.fnn = nn.Sequential(
                     nn.Linear(obs_size, hidden_size),
-                    nn.Tanh()
+                    nn.ReLU()
                     )
             self.lstm = nn.LSTM(len(dset), hidden_memory_size, batch_first=True)
         else:
@@ -597,7 +597,7 @@ class IAMLSTMPolicy(nn.Module):
                 self.image = False
                 self.fnn = nn.Sequential(
                     nn.Linear(obs_size, hidden_size),
-                    nn.Tanh()
+                    nn.ReLU()
                     )
             self.lstm = nn.LSTM(obs_size, hidden_memory_size, batch_first=True)
 
@@ -624,6 +624,7 @@ class IAMLSTMPolicy(nn.Module):
             else:
                 feature_vector = self.fnn(obs)#[:, :, nondset_mask])
             dset = obs[:, :, self.dset]
+            breakpoint()
         else:
             if self.image:
                 feature_vector = self.cnn(obs)

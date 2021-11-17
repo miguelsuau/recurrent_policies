@@ -589,7 +589,7 @@ class IAMLSTMPolicy(nn.Module):
             else:
                 self.image = False
                 self.fnn = nn.Sequential(
-                    nn.Linear(obs_size, hidden_size),
+                    nn.Linear(obs_size - len(dset), hidden_size),
                     nn.ReLU()
                     )
                 self.fnn.apply(init_weights)
@@ -627,12 +627,12 @@ class IAMLSTMPolicy(nn.Module):
     
     def forward(self, obs):
         if self.dset is not None:
-            # nondset_mask = np.ones(obs.shape[2], np.bool)
-            # nondset_mask[self.dset] = 0
+            nondset_mask = np.ones(obs.shape[2], np.bool)
+            nondset_mask[self.dset] = 0
             if self.image:
                 feature_vector = self.cnn(obs)
             else:
-                feature_vector = self.fnn(obs)#[:, :, nondset_mask])
+                feature_vector = self.fnn(obs[:, :, nondset_mask])
             dset = obs[:, :, self.dset]
         else:
             if self.image:
@@ -658,12 +658,12 @@ class IAMLSTMPolicy(nn.Module):
     def evaluate_action(self, obs, action, old_hidden_memory, masks):
         
         if self.dset is not None:
-            # nondset_mask = np.ones(obs.shape[2], np.bool)
-            # nondset_mask[self.dset] = 0
+            nondset_mask = np.ones(obs.shape[2], np.bool)
+            nondset_mask[self.dset] = 0
             if self.image:
                 feature_vector = self.cnn(obs)
             else:
-                feature_vector = self.fnn(obs)#[:, :, nondset_mask])
+                feature_vector = self.fnn(obs[:, :, nondset_mask])
             dset = obs[:, :, self.dset] 
         else:
             if self.image:
@@ -701,12 +701,12 @@ class IAMLSTMPolicy(nn.Module):
     def evaluate_value(self, obs):
         
         if self.dset is not None:
-            # nondset_mask = np.ones(obs.shape[2], np.bool)
-            # nondset_mask[self.dset] = 0
+            nondset_mask = np.ones(obs.shape[2], np.bool)
+            nondset_mask[self.dset] = 0
             if self.image:
                 feature_vector = self.cnn(obs)
             else:
-                feature_vector = self.fnn(obs)#[:, :, nondset_mask])
+                feature_vector = self.fnn(obs[:, :, nondset_mask])
             dset = obs[:, :, self.dset]
         else:
             if self.image:

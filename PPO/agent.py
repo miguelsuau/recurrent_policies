@@ -36,7 +36,7 @@ class Agent(object):
         self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=learning_rate)
         self.lr_schedule = LRLinearSchedule(self.optimizer, total_steps, learning_rate, 1.0e-10)
         self.clip_schedule = LinearSchedule(total_steps, clip_range, 1.0e-5)
-        self.entropy_schedule = LinearSchedule(total_steps, entropy_coef, 1.0e-2)
+        self.entropy_schedule = LinearSchedule(total_steps, entropy_coef, 1.0e-5)
         self.buffer = Buffer(memory_size)
         self.step = 0
         self.save_path = os.path.join(save_path, self.policy.get_architecture())

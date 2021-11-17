@@ -615,7 +615,7 @@ class IAMLSTMPolicy(nn.Module):
             self.lstm.apply(init_weights)
         self.fnn2 = nn.Sequential(
                 nn.Linear(hidden_size_2+hidden_memory_size, hidden_size_2),
-                nn.ReLU()
+                nn.Tanh()
                 )
         self.fnn2.apply(init_weights)
         self.actor = nn.Linear(hidden_size_2, action_size)

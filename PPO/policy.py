@@ -612,8 +612,16 @@ class IAMLSTMPolicy(nn.Module):
                 nn.Linear(hidden_size+hidden_memory_size, hidden_size_2),
                 nn.Tanh()
                 )
+        self.fnn3 = nn.Sequential(
+                nn.Linear(hidden_size_2, hidden_size_2),
+                nn.Tanh()
+                )
         self.fnn2.apply(init_weights)
-
+        self.fnn3 = nn.Sequential(
+                nn.Linear(hidden_size_2, hidden_size_2),
+                nn.Tanh()
+                )
+        self.fnn3.apply(init_weights)
         self.actor = nn.Linear(hidden_size_2, action_size)
         self.actor.apply(init_weights)
         self.critic = nn.Linear(hidden_size_2, 1)
@@ -643,7 +651,8 @@ class IAMLSTMPolicy(nn.Module):
         
         lstm_out, self.hidden_memory = self.lstm(dset, self.hidden_memory)
         out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
-        out  = self.fnn2(out)
+        out = self.fnn2(out)
+        out = self.fnn3(out)
 
         logits = self.actor(out)
         action_dist = Categorical(logits=logits)
@@ -688,6 +697,7 @@ class IAMLSTMPolicy(nn.Module):
             out.append(torch.cat((feature_vector[:,t].unsqueeze(1), lstm_out), 2))
         out = torch.cat(out, 1).flatten(end_dim=1)
         out = self.fnn2(out)
+        out = self.fnn3(out)
         log_probs = self.actor(out)
         action_dist = Categorical(logits=log_probs)
         log_prob =  action_dist.log_prob(action)
@@ -717,7 +727,8 @@ class IAMLSTMPolicy(nn.Module):
             
         lstm_out, _ = self.lstm(dset, self.hidden_memory)
         out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
-        out  = self.fnn2(out)
+        out = self.fnn2(out)
+        out = self.fnn3(out)
         value = self.critic(out)
 
         return value

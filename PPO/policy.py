@@ -582,39 +582,29 @@ class IAMLSTMPolicy(nn.Module):
         self.num_workers = num_workers
         self.recurrent = True
         
-        if dset is not None:
-            if isinstance(obs_size, list):
-                self.cnn = CNN(obs_size)
-                self.image = True
-            else:
-                self.image = False
-                self.fnn = nn.Sequential(
-                    nn.Linear(obs_size, hidden_size),
-                    nn.ReLU()
-                    )
-                self.fnn.apply(init_weights)
-                self.fnn3 = nn.Sequential(
+        if dset is not None:        
+            self.fnn = nn.Sequential(
+                nn.Linear(obs_size, hidden_size),
+                nn.ReLU()
+                )
+            self.fnn.apply(init_weights)
+            self.fnn3 = nn.Sequential(
                 nn.Linear(hidden_size, hidden_size_2),
                 nn.ReLU()
                 )
-                self.fnn3.apply(init_weights)
-            self.lstm = nn.LSTM(obs_size, hidden_memory_size, batch_first=True)
+            self.fnn3.apply(init_weights)
+            self.lstm = nn.LSTM(len(dset), hidden_memory_size, batch_first=True)
             self.lstm.apply(init_weights)
         else:
-            if isinstance(obs_size, list):
-                self.cnn = CNN(obs_size)
-                self.image = True
-            else:
-                self.image = False
-                self.fnn = nn.Sequential(
-                    nn.Linear(obs_size, hidden_size),
-                    nn.ReLU()
-                    )
-                self.fnn.apply(init_weights)
+            self.fnn = nn.Sequential(
+                nn.Linear(obs_size, hidden_size),
+                nn.ReLU()
+                )
+            self.fnn.apply(init_weights)
             self.lstm = nn.LSTM(obs_size, hidden_memory_size, batch_first=True)
             self.lstm.apply(init_weights)
         self.fnn2 = nn.Sequential(
-                nn.Linear(hidden_memory_size, hidden_size_2),
+                nn.Linear(hidden_memory_size + hidden_size, hidden_size_2),
                 nn.ReLU()
                 )
         self.fnn2.apply(init_weights)
@@ -633,23 +623,15 @@ class IAMLSTMPolicy(nn.Module):
         if self.dset is not None:
             # nondset_mask = np.ones(obs.shape[2], np.bool)
             # nondset_mask[self.dset] = 0
-            if self.image:
-                feature_vector = self.cnn(obs)
-            else:
-                feature_vector = self.fnn(obs)#[:, :, nondset_mask])
-                feature_vector = self.fnn3(feature_vector)
-            # dset = obs[:, :, self.dset]
-            dset = obs
+            feature_vector = self.fnn(obs)#[:, :, nondset_mask])
+            feature_vector = self.fnn3(feature_vector)
+            dset = obs[:, :, self.dset]
         else:
-            if self.image:
-                feature_vector = self.cnn(obs)
-            else:
-                feature_vector = self.fnn(obs)
+            feature_vector = self.fnn(obs)
             dset = obs
         
         lstm_out, self.hidden_memory = self.lstm(dset, self.hidden_memory)
-        # out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
-        out = lstm_out.flatten(end_dim=1)
+        out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
         out = self.fnn2(out)
 
         logits = self.actor(out)
@@ -667,21 +649,14 @@ class IAMLSTMPolicy(nn.Module):
         if self.dset is not None:
             # nondset_mask = np.ones(obs.shape[2], np.bool)
             # nondset_mask[self.dset] = 0
-            if self.image:
-                feature_vector = self.cnn(obs)
-            else:
-                feature_vector = self.fnn(obs)#[:, :, nondset_mask])
-                feature_vector = self.fnn3(feature_vector)
-            # dset = obs[:, :, self.dset] 
-            dset = obs
+            feature_vector = self.fnn(obs)#[:, :, nondset_mask])
+            feature_vector = self.fnn3(feature_vector)
+            dset = obs[:, :, self.dset] 
         else:
-            if self.image:
-                feature_vector = self.cnn(obs)
-            else:
-                feature_vector = self.fnn(obs)
+            feature_vector = self.fnn(obs)
             dset = obs
         seq_len = feature_vector.size(1)
-        out = []
+        hidden_memories = []
         # NOTE: We use masks to zero out hidden memory if last 
         # step belongs to previous episode. Mask_{t-1}*hidden_memory_t
         masks = torch.cat((torch.ones(masks.size(0), 1), masks), dim=1)
@@ -694,9 +669,8 @@ class IAMLSTMPolicy(nn.Module):
                 dset[:,t].unsqueeze(1), 
                 hidden_memory
                 )
-            # out.append(torch.cat((feature_vector[:,t].unsqueeze(1), lstm_out), 2))
-            out.append(lstm_out)
-        out = torch.cat(out, 1).flatten(end_dim=1)
+            hidden_memories.append(lstm_out)
+        out = torch.cat((feature_vector, torch.cat(hidden_memories, 1)), 2).flatten(end_dim=1)
         out = self.fnn2(out)
         log_probs = self.actor(out)
         action_dist = Categorical(logits=log_probs)
@@ -712,23 +686,15 @@ class IAMLSTMPolicy(nn.Module):
         if self.dset is not None:
             # nondset_mask = np.ones(obs.shape[2], np.bool)
             # nondset_mask[self.dset] = 0
-            if self.image:
-                feature_vector = self.cnn(obs)
-            else:
-                feature_vector = self.fnn(obs)#[:, :, nondset_mask])
-                feature_vector = self.fnn3(feature_vector)
-            # dset = obs[:, :, self.dset]
-            dset = obs
+            feature_vector = self.fnn(obs)#[:, :, nondset_mask])
+            feature_vector = self.fnn3(feature_vector)
+            dset = obs[:, :, self.dset]
         else:
-            if self.image:
-                feature_vector = self.cnn(obs)
-            else:
-                feature_vector = self.fnn(obs)
+            feature_vector = self.fnn(obs)
             dset = obs
             
         lstm_out, _ = self.lstm(dset, self.hidden_memory)
-        # out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
-        out = lstm_out.flatten(end_dim=1)
+        out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
         out = self.fnn2(out)
         value = self.critic(out)
         return value

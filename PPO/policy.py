@@ -604,7 +604,7 @@ class IAMLSTMPolicy(nn.Module):
             self.lstm = nn.LSTM(obs_size, hidden_memory_size, batch_first=True)
             self.lstm.apply(init_weights)
         self.fnn2 = nn.Sequential(
-                nn.Linear(hidden_memory_size + hidden_size, hidden_size_2),
+                nn.Linear(hidden_memory_size + hidden_size_2, hidden_size_2),
                 nn.ReLU()
                 )
         self.fnn2.apply(init_weights)

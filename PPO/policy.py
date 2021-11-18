@@ -598,7 +598,7 @@ class IAMLSTMPolicy(nn.Module):
                 nn.ReLU()
                 )
                 self.fnn3.apply(init_weights)
-            self.lstm = nn.LSTM(len(dset), hidden_memory_size, batch_first=True)
+            self.lstm = nn.LSTM(obs_size, hidden_memory_size, batch_first=True)
             self.lstm.apply(init_weights)
         else:
             if isinstance(obs_size, list):
@@ -638,7 +638,8 @@ class IAMLSTMPolicy(nn.Module):
             else:
                 feature_vector = self.fnn(obs)#[:, :, nondset_mask])
                 feature_vector = self.fnn3(feature_vector)
-            dset = obs[:, :, self.dset]
+            # dset = obs[:, :, self.dset]
+            dset = obs
         else:
             if self.image:
                 feature_vector = self.cnn(obs)
@@ -671,7 +672,8 @@ class IAMLSTMPolicy(nn.Module):
             else:
                 feature_vector = self.fnn(obs)#[:, :, nondset_mask])
                 feature_vector = self.fnn3(feature_vector)
-            dset = obs[:, :, self.dset] 
+            # dset = obs[:, :, self.dset] 
+            dset = obs
         else:
             if self.image:
                 feature_vector = self.cnn(obs)
@@ -716,7 +718,8 @@ class IAMLSTMPolicy(nn.Module):
             else:
                 feature_vector = self.fnn(obs)#[:, :, nondset_mask])
                 feature_vector = self.fnn3(feature_vector)
-            dset = obs[:, :, self.dset]
+            # dset = obs[:, :, self.dset]
+            dset = obs
         else:
             if self.image:
                 feature_vector = self.cnn(obs)

@@ -614,7 +614,7 @@ class IAMLSTMPolicy(nn.Module):
             self.lstm = nn.LSTM(obs_size, hidden_memory_size, batch_first=True)
             self.lstm.apply(init_weights)
         self.fnn2 = nn.Sequential(
-                nn.Linear(hidden_size_2+hidden_memory_size, hidden_size_2),
+                nn.Linear(hidden_memory_size, hidden_size_2),
                 nn.Tanh()
                 )
         self.fnn2.apply(init_weights)
@@ -647,7 +647,8 @@ class IAMLSTMPolicy(nn.Module):
             dset = obs
         
         lstm_out, self.hidden_memory = self.lstm(dset, self.hidden_memory)
-        out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
+        # out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
+        out = lstm_out.flatten(end_dim=1)
         out = self.fnn2(out)
 
         logits = self.actor(out)
@@ -691,7 +692,8 @@ class IAMLSTMPolicy(nn.Module):
                 dset[:,t].unsqueeze(1), 
                 hidden_memory
                 )
-            out.append(torch.cat((feature_vector[:,t].unsqueeze(1), lstm_out), 2))
+            # out.append(torch.cat((feature_vector[:,t].unsqueeze(1), lstm_out), 2))
+            out.append(lstm_out)
         out = torch.cat(out, 1).flatten(end_dim=1)
         out = self.fnn2(out)
         log_probs = self.actor(out)
@@ -723,7 +725,8 @@ class IAMLSTMPolicy(nn.Module):
             dset = obs
             
         lstm_out, _ = self.lstm(dset, self.hidden_memory)
-        out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
+        # out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
+        out = lstm_out.flatten(end_dim=1)
         out = self.fnn2(out)
         value = self.critic(out)
 

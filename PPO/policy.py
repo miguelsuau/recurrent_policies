@@ -615,7 +615,7 @@ class IAMLSTMPolicy(nn.Module):
             self.lstm.apply(init_weights)
         self.fnn2 = nn.Sequential(
                 nn.Linear(hidden_memory_size, hidden_size_2),
-                nn.Tanh()
+                nn.ReLU()
                 )
         self.fnn2.apply(init_weights)
         self.actor = nn.Linear(hidden_size_2, action_size)
@@ -702,7 +702,6 @@ class IAMLSTMPolicy(nn.Module):
         action_dist = Categorical(logits=log_probs)
         log_prob =  action_dist.log_prob(action)
         entropy = action_dist.entropy()
-
         value = self.critic(out)
 
         return value, log_prob, entropy
@@ -732,7 +731,6 @@ class IAMLSTMPolicy(nn.Module):
         out = lstm_out.flatten(end_dim=1)
         out = self.fnn2(out)
         value = self.critic(out)
-
         return value
 
     

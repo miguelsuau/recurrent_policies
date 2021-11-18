@@ -608,9 +608,9 @@ class IAMLSTMPolicy(nn.Module):
                 nn.ReLU()
                 )
         self.fnn2.apply(init_weights)
-        self.actor = nn.Linear(hidden_size_2, action_size)
+        self.actor = nn.Linear(hidden_memory_size + hidden_size_2, action_size)
         self.actor.apply(init_weights)
-        self.critic = nn.Linear(hidden_size_2, 1)
+        self.critic = nn.Linear(hidden_memory_size + hidden_size_2, 1)
         self.critic.apply(init_weights)
         self.hidden_memory_size = hidden_memory_size
         h = torch.zeros(1, self.num_workers, self.hidden_memory_size)
@@ -632,7 +632,7 @@ class IAMLSTMPolicy(nn.Module):
         
         lstm_out, self.hidden_memory = self.lstm(dset, self.hidden_memory)
         out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
-        out = self.fnn2(out)
+        # out = self.fnn2(out)
 
         logits = self.actor(out)
         action_dist = Categorical(logits=logits)
@@ -671,7 +671,7 @@ class IAMLSTMPolicy(nn.Module):
                 )
             hidden_memories.append(lstm_out)
         out = torch.cat((feature_vector, torch.cat(hidden_memories, 1)), 2).flatten(end_dim=1)
-        out = self.fnn2(out)
+        # out = self.fnn2(out)
         log_probs = self.actor(out)
         action_dist = Categorical(logits=log_probs)
         log_prob =  action_dist.log_prob(action)
@@ -695,7 +695,7 @@ class IAMLSTMPolicy(nn.Module):
             
         lstm_out, _ = self.lstm(dset, self.hidden_memory)
         out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
-        out = self.fnn2(out)
+        # out = self.fnn2(out)
         value = self.critic(out)
         return value
 

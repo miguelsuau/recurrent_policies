@@ -23,6 +23,9 @@ class Agent(object):
         total_steps = 2.0e6,
         clip_range = 0.2,
         entropy_coef = 1.0e-3,
+        rollout_steps = 16,
+        lambd = 0.95,
+        gamma = 0.99,
         save_path = './saved_policies/',
         load = False
         ):
@@ -33,6 +36,9 @@ class Agent(object):
         self.num_epoch = num_epoch
         self.recurrent_policy = policy.recurrent
         self.policy = policy
+        self.rollout_steps = rollout_steps
+        self.lambd = lambd
+        self.gamma = gamma
         self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=learning_rate)
         self.lr_schedule = LRLinearSchedule(self.optimizer, total_steps, learning_rate, 1.0e-10)
         self.clip_schedule = LinearSchedule(total_steps, clip_range, 1.0e-5)
@@ -46,8 +52,8 @@ class Agent(object):
             self.policy.load_state_dict(torch.load(path))
             print('Policy loaded')
         torch.set_num_threads(1)
-        torch.device('cuda')
-        print('TORCH DEVICE', next(self.policy.parameters()).is_cuda)
+        # torch.device('cuda')
+        # print('TORCH DEVICE', next(self.policy.parameters()).is_cuda)
         print('TORCH NUM THREADS', torch.get_num_threads())
 
     def choose_action(self, obs):
@@ -78,7 +84,7 @@ class Agent(object):
                 self.buffer['c'].append(hidden_memory[1].squeeze(0).detach().numpy())
             # self.buffer['prev_action'].append(prev_action)
     
-    def bootstrap(self, obs, rollout_steps, gamma=0.99, lambd=0.95):
+    def bootstrap(self, obs):
         """
         Computes GAE and returns for a given time horizon
         """
@@ -86,7 +92,7 @@ class Agent(object):
             obs = torch.FloatTensor(obs).unsqueeze(1)
             last_value = self.policy.evaluate_value(obs)
         batch = self.buffer.get_last_entries(
-            rollout_steps, 
+            self.rollout_steps, 
             ['rewards', 'values','dones']
             )
         advantages = self._compute_advantages(
@@ -94,7 +100,7 @@ class Agent(object):
             np.array(batch['values']), 
             np.array(batch['dones']),
             last_value.flatten().detach().numpy(),
-            gamma, lambd
+            self.gamma, self.lambd
             )
         self.buffer['advantages'].extend(advantages)
         returns = advantages + batch['values']

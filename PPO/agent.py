@@ -52,9 +52,6 @@ class Agent(object):
             self.policy.load_state_dict(torch.load(path))
             print('Policy loaded')
         torch.set_num_threads(1)
-        # torch.device('cuda')
-        # print('TORCH DEVICE', next(self.policy.parameters()).is_cuda)
-        print('TORCH NUM THREADS', torch.get_num_threads())
 
     def choose_action(self, obs):
 
@@ -204,7 +201,6 @@ class Agent(object):
         entropy_bonus = -torch.mean(entropy)
 
         loss = policy_loss + value_coef * value_loss + entropy_coef * entropy_bonus
-        
         self.optimizer.zero_grad(set_to_none=True)
         loss.backward()
         # Clip grad norm

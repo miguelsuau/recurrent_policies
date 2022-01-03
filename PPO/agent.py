@@ -208,8 +208,10 @@ class Agent(object):
         self.optimizer.step()
         return policy_loss, value_loss
 
-    def save_policy(self):
-        if not os.path.exists(self.save_path):
-            os.makedirs(self.save_path)
-        path = os.path.join(self.save_path, 'policy.pth')
+    def save_policy(self, save_path=None):
+        if save_path is None:
+            save_path = self.save_path
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        path = os.path.join(save_path, 'policy.pth')
         torch.save(self.policy.state_dict(), path) 

@@ -85,7 +85,6 @@ class GRUPolicy(nn.Module):
         return value
 
     def reset_hidden_memory(self, worker):
-        
         self.hidden_memory[:, worker] = torch.zeros(
             1, 1, self.hidden_memory_size
             )

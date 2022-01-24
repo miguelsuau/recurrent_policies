@@ -420,7 +420,7 @@ class IAMGRUPolicy(nn.Module):
 
 class FNNFSPolicy(nn.Module):
 
-    def __init__(self, obs_size, action_size, num_workers, dset=None, n_stack=1):
+    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, dset=None, n_stack=1):
         super(FNNFSPolicy, self).__init__()
         self.num_workers = num_workers
         self.recurrent = False
@@ -437,11 +437,11 @@ class FNNFSPolicy(nn.Module):
                 )
             self.image = False
         self.fnn2 = nn.Sequential(
-            nn.Linear(hidden_size, HIDDEN_MEMORY_SIZE),
+            nn.Linear(hidden_size, hidden_size_2),
             nn.ReLU()
             )
-        self.actor = nn.Linear(HIDDEN_MEMORY_SIZE, action_size)
-        self.critic = nn.Linear(HIDDEN_MEMORY_SIZE, 1)
+        self.actor = nn.Linear(hidden_size_2, action_size)
+        self.critic = nn.Linear(hidden_size_2, 1)
 
     
     def forward(self, obs):

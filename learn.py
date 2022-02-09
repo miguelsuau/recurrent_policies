@@ -199,6 +199,7 @@ class Experiment(object):
         while step < self.parameters['total_steps']:
 
             rollout_step = 0
+            done = [False]*self.parameters['num_workers']
             while rollout_step < self.agent.rollout_steps:
                 
                 if step % self.parameters['eval_freq'] == 0:

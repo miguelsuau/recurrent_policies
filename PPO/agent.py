@@ -1,11 +1,11 @@
 from random import shuffle
 import sys
 sys.path.append("..") 
-from recurrent_policies.PPO.buffer import Buffer
+from PPO.buffer import Buffer
 import numpy as np
 import torch
 from torch.nn import functional as F
-from recurrent_policies.PPO.utils import LinearSchedule, LRLinearSchedule
+from PPO.utils import LinearSchedule, LRLinearSchedule
 import os
 
 class Agent(object):

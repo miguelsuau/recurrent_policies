@@ -17,4 +17,3 @@ parameters:
         policy: 'FNNPolicy'
         load_policy: False
         framestack: False
-        total_steps: 4.0e+6

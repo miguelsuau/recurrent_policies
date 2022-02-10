@@ -1,6 +1,5 @@
 from random import shuffle
 import sys
-from turtle import update
 sys.path.append("..") 
 from PPO.buffer import Buffer
 import numpy as np

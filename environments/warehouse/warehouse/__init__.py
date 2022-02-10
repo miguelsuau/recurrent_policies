@@ -3,3 +3,7 @@ register(
     id='mini-warehouse-v0',
     entry_point='warehouse.envs:MiniWarehouse',
 )
+register(
+    id='mini-warehouse-memory-v0',
+    entry_point='warehouse.envs:MiniWarehouseMemory',
+)

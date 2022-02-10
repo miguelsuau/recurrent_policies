@@ -7,7 +7,7 @@ import gym
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-class MiniWarehouse(gym.Env):
+class MiniWarehouseMemory(gym.Env):
     """
     warehouse environment
     """

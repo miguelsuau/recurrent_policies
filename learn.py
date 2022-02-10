@@ -255,7 +255,8 @@ class Experiment(object):
             eval_env = self.create_env()
             print('Evaluating policy...')
             while n_steps < self.parameters['eval_steps']//self.parameters['num_workers']:
-                reward_sum = np.array([0.0]*self.parameters['num_workers'])
+                # reward_sum = np.array([0.0]*self.parameters['num_workers'])
+                reward_sum = 0
                 done = [False]*self.parameters['num_workers']
                 obs = eval_env.reset()
                 # NOTE: Episodes in all envs must terminate at the same time
@@ -267,8 +268,8 @@ class Experiment(object):
                     if self.parameters['render']:
                         eval_env.render()
                         time.sleep(.5)
-                    reward = eval_env.get_original_reward()
-                    reward_sum += np.array(reward)
+                    reward = np.mean(eval_env.get_original_reward())
+                    reward_sum += reward
                 episode_rewards.append(reward_sum)
             
             self._run.log_scalar('mean episodic return', np.mean(episode_rewards), step)

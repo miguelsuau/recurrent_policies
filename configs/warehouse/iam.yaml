@@ -11,11 +11,11 @@ parameters:
         hidden_size_2: 256
         hidden_memory_size: 128
         seq_len: 8
-        num_workers: 8
+        num_workers: 1
         epsilon: 0.1
         beta: 0.01
         render: False
-        policy: 'IAMGRUPolicy'
+        policy: 'IAMGRUPolicy_modified'
         load_policy: False
         framestack: False
         # dset: [49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68]

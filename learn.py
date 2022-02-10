@@ -8,7 +8,7 @@ import os
 import sys
 sys.path.append("..")
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize, VecFrameStack
-from PPO import Agent, FNNPolicy, GRUPolicy, ModifiedGRUPolicy, IAMGRUPolicy, FNNFSPolicy, LSTMPolicy, IAMLSTMPolicy
+from PPO import Agent, FNNPolicy, GRUPolicy, ModifiedGRUPolicy, IAMGRUPolicy_modified, FNNFSPolicy, LSTMPolicy, IAMLSTMPolicy
 import gym
 import sacred
 from sacred.observers import MongoObserver
@@ -18,6 +18,7 @@ import numpy as np
 import csv
 import os
 from copy import deepcopy
+import time
 
 def generate_path(path):
     """
@@ -96,8 +97,8 @@ class Experiment(object):
                 self.parameters['hidden_size_2'],
                 self.parameters['num_workers']
                 )
-        elif self.parameters['policy'] == 'IAMGRUPolicy':
-            policy = IAMGRUPolicy(self.parameters['obs_size'], 
+        elif self.parameters['policy'] == 'IAMGRUPolicy_modified':
+            policy = IAMGRUPolicy_modified(self.parameters['obs_size'], 
                 self.parameters['num_actions'], 
                 self.parameters['hidden_size'],
                 self.parameters['hidden_size_2'],
@@ -158,7 +159,6 @@ class Experiment(object):
         
     def create_env(self):
         env_name = self.parameters['env'] + ':' + self.parameters['name'] + '-v0'
-        # global_env_name = 'tmaze:tmaze-v0'
         env = SubprocVecEnv(
             [self.make_env(env_name, i, self.seed) for i in range(self.parameters['num_workers'])],
             'spawn'
@@ -264,6 +264,9 @@ class Experiment(object):
                     n_steps += 1
                     action, _, _ = agent.choose_action(obs)
                     obs, _, done, info = eval_env.step(action)
+                    if self.parameters['render']:
+                        eval_env.render()
+                        time.sleep(.5)
                     reward = eval_env.get_original_reward()
                     reward_sum += np.array(reward)
                 episode_rewards.append(reward_sum)

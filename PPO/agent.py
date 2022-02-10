@@ -1,5 +1,6 @@
 from random import shuffle
 import sys
+from turtle import update
 sys.path.append("..") 
 from PPO.buffer import Buffer
 import numpy as np
@@ -120,11 +121,17 @@ class Agent(object):
         policy_loss = 0
         value_loss = 0
         n_batches = self.memory_size // self.batch_size
+        
+        if self.policy.get_architecture() == 'IAMGRU_modified':
+            update_policy = self._update_policy_iam
+        else:
+            update_policy = self._update_policy
+
         for _ in range(self.num_epoch):
             shuffled_buffer = self.buffer.shuffle(self.seq_len)
             for b in range(n_batches):
                 batch = self.buffer.sample(b, self.batch_size, self.seq_len, shuffled_buffer)
-                mb_policy_loss, mb_value_loss = self._update_policy(batch, clip_range, entropy_coef)
+                mb_policy_loss, mb_value_loss = update_policy(batch, clip_range, entropy_coef)
                 policy_loss += mb_policy_loss
                 value_loss += mb_value_loss
         self.buffer.empty()
@@ -195,6 +202,72 @@ class Agent(object):
 
         value_loss2 = F.mse_loss(returns, clipped_values, reduction='none')
         value_loss = torch.max(value_loss1, value_loss2).mean()
+        # value_loss = value_loss1.mean()
+
+        # Entropy bonus
+        entropy_bonus = -torch.mean(entropy)
+
+        loss = policy_loss + value_coef * value_loss + entropy_coef * entropy_bonus
+        self.optimizer.zero_grad(set_to_none=True)
+        loss.backward()
+        # Clip grad norm
+        # torch.nn.utils.clip_grad_norm_(self.policy.parameters(), max_grad_norm)
+        self.optimizer.step()
+        return policy_loss, value_loss
+
+    def _update_policy_iam(
+            self, batch, clip_range=0.2, entropy_coef=1e-3, 
+            value_coef=1.0, max_grad_norm=0.5
+            ):
+        
+        obs = torch.FloatTensor(batch['obs']).flatten(end_dim=1)
+        actions = torch.FloatTensor(batch['actions']).flatten()
+        
+        if 'GRU' in self.policy.get_architecture():
+            old_hidden_memories = torch.FloatTensor(batch['hidden_memories']).flatten(end_dim=1)
+        else:
+            h = torch.FloatTensor(batch['h']).flatten(end_dim=1)
+            c = torch.FloatTensor(batch['c']).flatten(end_dim=1)
+            old_hidden_memories = (h, c)
+
+        masks = torch.FloatTensor(batch['masks']).flatten(end_dim=1)
+        values1, values2, log_prob, entropy = self.policy.evaluate_action(
+            obs, actions, old_hidden_memories, masks
+            )
+        # Normalize advantage
+        advantages = torch.FloatTensor(batch['advantages']).flatten()
+        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+
+        # importance sampling ratio
+        old_log_probs = torch.FloatTensor(batch['log_probs']).flatten()
+        ratio = torch.exp(log_prob - old_log_probs)
+
+        # policy loss
+        policy_loss_1 = advantages * ratio
+        policy_loss_2 = advantages * torch.clamp(ratio, 1.0 - clip_range, 1.0 + clip_range)
+        policy_loss = -torch.min(policy_loss_1, policy_loss_2).mean()
+
+        # value loss
+        returns = torch.FloatTensor(batch['returns']).flatten()
+        old_values = torch.FloatTensor(batch['values']).flatten()
+        clipped_values = old_values + torch.clamp(
+                values1.flatten() - old_values, -clip_range, clip_range
+            )
+        value_loss1 = F.mse_loss(returns, values1.flatten(), reduction='none')
+
+        value_loss2 = F.mse_loss(returns, clipped_values, reduction='none')
+        value_loss = torch.max(value_loss1, value_loss2).mean()
+
+        values1_detached = values1.clone().detach()
+        values2 = values1_detached + values2
+        clipped_values = old_values + torch.clamp(
+                values2.flatten() - old_values, -clip_range, clip_range
+            )
+        value_loss1 = F.mse_loss(returns, values2.flatten(), reduction='none')
+
+        value_loss2 = F.mse_loss(returns, clipped_values, reduction='none')
+        value_loss =+ torch.max(value_loss1, value_loss2).mean()
+
         # value_loss = value_loss1.mean()
 
         # Entropy bonus

@@ -265,10 +265,10 @@ class FNNPolicy(nn.Module):
 
 
 
-class IAMGRUPolicy(nn.Module):
+class IAMGRUPolicy_modified(nn.Module):
 
     def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, dset=None, dset_size=0):
-        super(IAMGRUPolicy, self).__init__()
+        super(IAMGRUPolicy_modified, self).__init__()
         self.num_workers = num_workers
         self.recurrent = True
         
@@ -302,7 +302,8 @@ class IAMGRUPolicy(nn.Module):
                 )
 
         self.actor = nn.Linear(hidden_size_2, action_size)
-        self.critic = nn.Linear(hidden_size_2, 1)
+        self.critic1 = nn.Linear(hidden_size//2, 1)
+        self.critic2 = nn.Linear(hidden_size, 1)
         self.hidden_memory_size = hidden_size//2
         self.hidden_memory = torch.zeros(1, 
             self.num_workers,
@@ -329,15 +330,15 @@ class IAMGRUPolicy(nn.Module):
             dset = self.dhat(obs)
         
         gru_out, self.hidden_memory = self.gru(dset, self.hidden_memory)
-        out = torch.cat((feature_vector, gru_out), 2).flatten(end_dim=1)
-        out  = self.fnn2(out)
+        concat = torch.cat((feature_vector, gru_out), 2).flatten(end_dim=1)
+        out  = self.fnn2(concat)
 
         logits = self.actor(out)
         action_dist = Categorical(logits=logits)
         action = action_dist.sample()
         log_prob = action_dist.log_prob(action)
 
-        value = self.critic(out)
+        value = self.critic1(feature_vector) + self.critic2(concat)
 
         return action, value, log_prob
 
@@ -359,7 +360,7 @@ class IAMGRUPolicy(nn.Module):
                 feature_vector = self.fnn(obs)
             dset = self.dhat(obs)
         seq_len = feature_vector.size(1)
-        out = []
+        concat = []
         # NOTE: We use masks to zero out hidden memory if last 
         # step belongs to previous episode. Mask_{t-1}*hidden_memory_t
         masks = torch.cat((torch.ones(masks.size(0), 1), masks), dim=1)
@@ -370,17 +371,18 @@ class IAMGRUPolicy(nn.Module):
                 dset[:,t].unsqueeze(1), 
                 hidden_memory
                 )
-            out.append(torch.cat((feature_vector[:,t].unsqueeze(1), gru_out), 2))
-        out = torch.cat(out, 1).flatten(end_dim=1)
-        out = self.fnn2(out)
+            concat.append(torch.cat((feature_vector[:,t].unsqueeze(1), gru_out), 2))
+        concat = torch.cat(concat, 1).flatten(end_dim=1)
+        out = self.fnn2(concat)
         log_probs = self.actor(out)
         action_dist = Categorical(logits=log_probs)
         log_prob =  action_dist.log_prob(action)
         entropy = action_dist.entropy()
 
-        value = self.critic(out)
+        value1 = self.critic1(feature_vector.flatten(end_dim=1))
+        value2 = self.critic2(concat)
 
-        return value, log_prob, entropy
+        return value1, value2, log_prob, entropy
 
     
     def evaluate_value(self, obs):
@@ -401,9 +403,9 @@ class IAMGRUPolicy(nn.Module):
             dset = self.dhat(obs)
             
         gru_out, _ = self.gru(dset, self.hidden_memory)
-        out = torch.cat((feature_vector, gru_out), 2).flatten(end_dim=1)
-        out  = self.fnn2(out)
-        value = self.critic(out)
+        concat = torch.cat((feature_vector, gru_out), 2).flatten(end_dim=1)
+        # out  = self.fnn2(concat)
+        value = self.critic1(feature_vector) + self.critic2(concat)
 
         return value
 
@@ -415,7 +417,7 @@ class IAMGRUPolicy(nn.Module):
             )
     
     def get_architecture(self):
-        return 'IAMGRU'
+        return 'IAMGRU_modified'
 
 class FNNFSPolicy(nn.Module):
 

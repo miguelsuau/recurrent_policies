@@ -88,6 +88,7 @@ class Agent(object):
         with torch.no_grad():
             obs = torch.FloatTensor(obs).unsqueeze(1)
             last_value = self.policy.evaluate_value(obs)
+
         batch = self.buffer.get_last_entries(
             self.rollout_steps, 
             ['rewards', 'values','dones']
@@ -265,7 +266,7 @@ class Agent(object):
         value_loss1 = F.mse_loss(returns, values2.flatten(), reduction='none')
 
         value_loss2 = F.mse_loss(returns, clipped_values, reduction='none')
-        value_loss =+ torch.max(value_loss1, value_loss2).mean()
+        value_loss += torch.max(value_loss1, value_loss2).mean()
 
         # value_loss = value_loss1.mean()
 

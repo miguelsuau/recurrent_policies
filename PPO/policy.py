@@ -338,7 +338,7 @@ class IAMGRUPolicy_modified(nn.Module):
         action = action_dist.sample()
         log_prob = action_dist.log_prob(action)
 
-        value = self.critic1(feature_vector) + self.critic2(concat)
+        value = self.critic1(feature_vector.flatten(end_dim=1)) + self.critic2(concat)
 
         return action, value, log_prob
 
@@ -405,7 +405,7 @@ class IAMGRUPolicy_modified(nn.Module):
         gru_out, _ = self.gru(dset, self.hidden_memory)
         concat = torch.cat((feature_vector, gru_out), 2).flatten(end_dim=1)
         # out  = self.fnn2(concat)
-        value = self.critic1(feature_vector) + self.critic2(concat)
+        value = self.critic1(feature_vector.flatten(end_dim=1)) + self.critic2(concat)
 
         return value
 

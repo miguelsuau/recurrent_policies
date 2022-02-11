@@ -167,6 +167,7 @@ class Experiment(object):
 
         if self.parameters['framestack']:
             env = VecFrameStack(env, n_stack=self.parameters['n_stack'])
+
         return env
     
     def make_env(self, env_id, rank, seed=0, influence=None):
@@ -271,9 +272,8 @@ class Experiment(object):
                         time.sleep(.5)
                     reward = np.mean(eval_env.get_original_reward())
                     reward_sum += reward
-                    print(n_steps)
                 episode_rewards.append(reward_sum)
-            
+            print(episode_rewards)
             self._run.log_scalar('mean episodic return', np.mean(episode_rewards), step)
             eval_env.close()
             print('Done!')

@@ -195,11 +195,11 @@ class Experiment(object):
         episode_reward = 0
         episode_step = 0
         episode = 1
-
+        done = [False]*self.parameters['num_workers']
+        
         while step < self.parameters['total_steps']:
 
             rollout_step = 0
-            done = [False]*self.parameters['num_workers']
             while rollout_step < self.agent.rollout_steps:
                 
                 if step % self.parameters['eval_freq'] == 0:
@@ -258,7 +258,7 @@ class Experiment(object):
             while n_steps < self.parameters['eval_steps']//self.parameters['num_workers']:
                 # reward_sum = np.array([0.0]*self.parameters['num_workers'])
                 reward_sum = 0
-                done = [False]*self.parameters['num_workers']
+                
                 # NOTE: Episodes in all envs must terminate at the same time
                 agent.reset_hidden_memory([True]*self.parameters['num_workers'])
                 while not done[0]:

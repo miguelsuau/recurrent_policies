@@ -254,11 +254,11 @@ class Experiment(object):
             agent = deepcopy(self.agent)
             eval_env = self.create_env()
             print('Evaluating policy...')
+            obs = eval_env.reset()
             while n_steps < self.parameters['eval_steps']//self.parameters['num_workers']:
                 # reward_sum = np.array([0.0]*self.parameters['num_workers'])
                 reward_sum = 0
                 done = [False]*self.parameters['num_workers']
-                obs = eval_env.reset()
                 # NOTE: Episodes in all envs must terminate at the same time
                 agent.reset_hidden_memory([True]*self.parameters['num_workers'])
                 while not done[0]:

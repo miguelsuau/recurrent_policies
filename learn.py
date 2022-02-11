@@ -200,6 +200,7 @@ class Experiment(object):
         while step < self.parameters['total_steps']:
 
             rollout_step = 0
+    
             while rollout_step < self.agent.rollout_steps:
                 
                 if step % self.parameters['eval_freq'] == 0:
@@ -255,10 +256,10 @@ class Experiment(object):
             eval_env = self.create_env()
             print('Evaluating policy...')
             obs = eval_env.reset()
+            done = [False]*self.parameters['num_workers']
             while n_steps < self.parameters['eval_steps']//self.parameters['num_workers']:
                 # reward_sum = np.array([0.0]*self.parameters['num_workers'])
                 reward_sum = 0
-                
                 # NOTE: Episodes in all envs must terminate at the same time
                 agent.reset_hidden_memory([True]*self.parameters['num_workers'])
                 while not done[0]:

@@ -196,7 +196,7 @@ class Experiment(object):
         episode_step = 0
         episode = 1
         done = [False]*self.parameters['num_workers']
-        
+
         while step < self.parameters['total_steps']:
 
             rollout_step = 0
@@ -256,12 +256,12 @@ class Experiment(object):
             eval_env = self.create_env()
             print('Evaluating policy...')
             obs = eval_env.reset()
-            done = [False]*self.parameters['num_workers']
             while n_steps < self.parameters['eval_steps']//self.parameters['num_workers']:
                 # reward_sum = np.array([0.0]*self.parameters['num_workers'])
                 reward_sum = 0
                 # NOTE: Episodes in all envs must terminate at the same time
                 agent.reset_hidden_memory([True]*self.parameters['num_workers'])
+                done = [False]*self.parameters['num_workers']
                 while not done[0]:
                     n_steps += 1
                     action, _, _ = agent.choose_action(obs)
@@ -271,6 +271,7 @@ class Experiment(object):
                         time.sleep(.5)
                     reward = np.mean(eval_env.get_original_reward())
                     reward_sum += reward
+                    print(n_steps)
                 episode_rewards.append(reward_sum)
             
             self._run.log_scalar('mean episodic return', np.mean(episode_rewards), step)

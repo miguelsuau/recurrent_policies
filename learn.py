@@ -173,7 +173,7 @@ class Experiment(object):
             [self.make_env(env_name, i, self.seed) for i in range(self.parameters['num_workers'])],
             'spawn'
             ) 
-        env = VecNormalize(env, norm_reward=True, norm_obs=False)
+        env = VecNormalize(env, norm_reward=True, norm_obs=True)
 
         if self.parameters['framestack']:
             env = VecFrameStack(env, n_stack=self.parameters['n_stack'])
@@ -281,6 +281,7 @@ class Experiment(object):
                         eval_env.render()
                         time.sleep(.5)
                     reward = np.mean(eval_env.get_original_reward())
+                    breakpoint()
                     reward_sum += reward
                 episode_rewards.append(reward_sum)
             print(episode_rewards)

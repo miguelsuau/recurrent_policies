@@ -417,7 +417,7 @@ class IAMGRUPolicy(nn.Module):
 
 class IAMGRUPolicy_modified(nn.Module):
 
-    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, dset=None, dset_size=0):
+    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, hidden_memory_size, num_workers, dset=None, dset_size=0):
         super(IAMGRUPolicy_modified, self).__init__()
         self.num_workers = num_workers
         self.recurrent = True
@@ -429,10 +429,10 @@ class IAMGRUPolicy_modified(nn.Module):
             else:
                 self.image = False
                 self.fnn = nn.Sequential(
-                    nn.Linear(obs_size, hidden_size//2),
+                    nn.Linear(obs_size, hidden_size),
                     nn.ReLU()
                     )
-            self.gru = nn.GRU(len(dset), hidden_size//2, batch_first=True)
+            self.gru = nn.GRU(len(dset), hidden_memory_size, batch_first=True)
         else:
             if isinstance(obs_size, list):
                 self.cnn = CNN(obs_size)
@@ -440,26 +440,26 @@ class IAMGRUPolicy_modified(nn.Module):
             else:
                 self.image = False
                 self.fnn = nn.Sequential(
-                    nn.Linear(obs_size, hidden_size//2),
+                    nn.Linear(obs_size, hidden_size),
                     nn.ReLU()
                     )
                 self.dhat = nn.Linear(obs_size, dset_size)
-            self.gru = nn.GRU(dset_size, hidden_size//2, batch_first=True)
+            self.gru = nn.GRU(dset_size, hidden_memory_size, batch_first=True)
 
         self.fnn2 = nn.Sequential(
-                nn.Linear(hidden_size, hidden_size_2),
+                nn.Linear(hidden_size+hidden_memory_size, hidden_size_2),
                 nn.ReLU()
                 )
         
         self.fnn3 = nn.Sequential(
-                nn.Linear(hidden_size, hidden_size_2),
+                nn.Linear(hidden_size+hidden_memory_size, hidden_size_2),
                 nn.ReLU()
                 )
 
         self.actor = nn.Linear(hidden_size_2, action_size)
-        self.critic1 = nn.Linear(hidden_size//2, 1)
+        self.critic1 = nn.Linear(hidden_size, 1)
         self.critic2 = nn.Linear(hidden_size_2, 1)
-        self.hidden_memory_size = hidden_size//2
+        self.hidden_memory_size = hidden_memory_size
         self.hidden_memory = torch.zeros(1, 
             self.num_workers,
             self.hidden_memory_size

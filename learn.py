@@ -286,7 +286,7 @@ class Experiment(object):
                 episode_rewards.append(reward_sum)
             print(episode_rewards)
             self._run.log_scalar('mean episodic return', np.mean(episode_rewards), step)
-            eval_env.close()
+            # eval_env.close()
             print('Done!')
 
 if __name__ == '__main__':

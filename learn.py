@@ -264,7 +264,8 @@ class Experiment(object):
             n_steps = 0
             # copy agent to not altere hidden memory
             agent = deepcopy(self.agent)
-            eval_env = self.create_env()
+            # eval_env = self.create_env()
+            eval_env = self.env
             print('Evaluating policy...')
             obs = eval_env.reset()
             while n_steps < self.parameters['eval_steps']//self.parameters['num_workers']:

@@ -281,7 +281,6 @@ class Experiment(object):
                         eval_env.render()
                         time.sleep(.5)
                     reward = np.mean(eval_env.get_original_reward())
-                    breakpoint()
                     reward_sum += reward
                 episode_rewards.append(reward_sum)
             print(episode_rewards)

@@ -323,8 +323,8 @@ class IAMGRUPolicy(nn.Module):
                 feature_vector = self.cnn(obs)
             else:
                 feature_vector = self.fnn(obs)
-            # dset = self.dhat(obs)
-            dset = obs
+            dset = self.dhat(obs)
+            # dset = obs
         
         gru_out, self.hidden_memory = self.gru(dset, self.hidden_memory)
         out = torch.cat((feature_vector, gru_out), 2).flatten(end_dim=1)
@@ -355,8 +355,8 @@ class IAMGRUPolicy(nn.Module):
                 feature_vector = self.cnn(obs)
             else:
                 feature_vector = self.fnn(obs)
-            # dset = self.dhat(obs)
-            dset = obs
+            dset = self.dhat(obs)
+            # dset = obs
         seq_len = feature_vector.size(1)
         out = []
         # NOTE: We use masks to zero out hidden memory if last 
@@ -397,8 +397,8 @@ class IAMGRUPolicy(nn.Module):
                 feature_vector = self.cnn(obs)
             else:
                 feature_vector = self.fnn(obs)
-            # dset = self.dhat(obs)
-            dset = obs
+            dset = self.dhat(obs)
+            # dset = obs
             
         gru_out, _ = self.gru(dset, self.hidden_memory)
         out = torch.cat((feature_vector, gru_out), 2).flatten(end_dim=1)

@@ -1,4 +1,5 @@
 from PPO.agent import Agent
+from PPO.policy import IAMGRUPolicy_separate
 import numpy as np
 import os
 import yaml
@@ -8,7 +9,7 @@ import os
 import sys
 sys.path.append("..")
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize, VecFrameStack
-from PPO import Agent, FNNPolicy, GRUPolicy, ModifiedGRUPolicy, IAMGRUPolicy, IAMGRUPolicy_modified, FNNFSPolicy, LSTMPolicy, IAMLSTMPolicy
+from PPO import Agent, FNNPolicy, GRUPolicy, IAMGRUPolicy_separate, IAMGRUPolicy, IAMGRUPolicy_modified, FNNFSPolicy, LSTMPolicy, IAMLSTMPolicy
 import gym
 import sacred
 from sacred.observers import MongoObserver
@@ -117,6 +118,18 @@ class Experiment(object):
                 dset=self.parameters['dset'],
                 dset_size=self.parameters['dset_size']
                 ) 
+
+        elif self.parameters['policy'] == 'IAMGRUPolicy_separate':
+            policy = IAMGRUPolicy_separate(self.parameters['obs_size'], 
+                self.parameters['num_actions'], 
+                self.parameters['hidden_size'],
+                self.parameters['hidden_size_2'],
+                self.parameters['hidden_memory_size'],
+                self.parameters['num_workers'],
+                dset=self.parameters['dset'],
+                dset_size=self.parameters['dset_size']
+                ) 
+
         elif self.parameters['policy'] == 'IAMLSTMPolicy':
             policy = IAMLSTMPolicy(self.parameters['obs_size'], 
                 self.parameters['num_actions'], 

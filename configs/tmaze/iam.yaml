@@ -7,10 +7,10 @@ parameters:
         rollout_steps: 8
         num_actions: 4
         name: 'mini-warehouse-memory'
-        hidden_size: 256
+        hidden_size: 512
         hidden_size_2: 256
-        hidden_memory_size: 256
-        seq_len: 32
+        hidden_memory_size: 128
+        seq_len: 8
         num_workers: 8
         epsilon: 0.1
         beta: 0.01

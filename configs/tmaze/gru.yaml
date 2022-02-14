@@ -1,0 +1,18 @@
+parameters:
+    main:
+        env: 'tmaze'
+        obs_size: 8
+        rollout_steps: 8
+        num_actions: 4
+        name: 'tmaze'
+        hidden_size: 32
+        hidden_size_2: 16
+        seq_len: 8
+        num_workers: 8
+        epsilon: 0.1
+        beta: 0.01
+        render: False
+        policy: 'GRUPolicy'
+        load_policy: False
+        framestack: False
+        total_steps: 1.0e+4

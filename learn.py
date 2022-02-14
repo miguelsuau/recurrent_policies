@@ -209,7 +209,7 @@ class Experiment(object):
         episode = 1
         done = [False]*self.parameters['num_workers']
 
-        while step < self.parameters['total_steps']:
+        while step <= self.parameters['total_steps']:
 
             rollout_step = 0
     

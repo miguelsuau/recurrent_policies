@@ -452,7 +452,7 @@ class IAMGRUPolicy_modified(nn.Module):
                 )
         
         self.fnn3 = nn.Sequential(
-                nn.Linear(hidden_size+hidden_memory_size, hidden_size_2),
+                nn.Linear(hidden_memory_size, hidden_size_2),
                 nn.ReLU()
                 )
 
@@ -498,7 +498,7 @@ class IAMGRUPolicy_modified(nn.Module):
         action = action_dist.sample()
         log_prob = action_dist.log_prob(action)
 
-        value = self.critic1(self.fnn4(feature_vector.flatten(end_dim=1))) + self.critic2(self.fnn3(concat))
+        value = self.critic1(self.fnn4(feature_vector.flatten(end_dim=1))) + self.critic2(self.fnn3(gru_out.flatten(end_dim=1)))
 
         return action, value, log_prob
 
@@ -521,6 +521,7 @@ class IAMGRUPolicy_modified(nn.Module):
             dset = self.dhat(obs)
         seq_len = feature_vector.size(1)
         concat = []
+        gru_outs = []
         # NOTE: We use masks to zero out hidden memory if last 
         # step belongs to previous episode. Mask_{t-1}*hidden_memory_t
         masks = torch.cat((torch.ones(masks.size(0), 1), masks), dim=1)
@@ -532,6 +533,8 @@ class IAMGRUPolicy_modified(nn.Module):
                 hidden_memory
                 )
             concat.append(torch.cat((feature_vector[:,t].unsqueeze(1), gru_out), 2))
+            gru_outs.append(gru_out)
+        gru_outs = torch.cat(gru_outs, 1).flatten(end_dim=1)
         concat = torch.cat(concat, 1).flatten(end_dim=1)
         out = self.fnn2(concat.detach())
         log_probs = self.actor(out)
@@ -540,8 +543,7 @@ class IAMGRUPolicy_modified(nn.Module):
         entropy = action_dist.entropy()
 
         value1 = self.critic1(self.fnn4(feature_vector.flatten(end_dim=1)))
-        value2 = self.critic2(self.fnn3(concat))
-
+        value2 = self.critic2(self.fnn3(gru_outs))
         return value1, value2, log_prob, entropy
 
     
@@ -565,7 +567,7 @@ class IAMGRUPolicy_modified(nn.Module):
         gru_out, _ = self.gru(dset, self.hidden_memory)
         concat = torch.cat((feature_vector, gru_out), 2).flatten(end_dim=1)
         # out  = self.fnn2(concat)
-        value = self.critic1(self.fnn4(feature_vector.flatten(end_dim=1))) + self.critic2(self.fnn3(concat))
+        value = self.critic1(self.fnn4(feature_vector.flatten(end_dim=1))) + self.critic2(self.fnn3(gru_out.flatten(end_dim=1)))
 
         return value
 

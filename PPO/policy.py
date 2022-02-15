@@ -533,7 +533,7 @@ class IAMGRUPolicy_modified(nn.Module):
                 )
             concat.append(torch.cat((feature_vector[:,t].unsqueeze(1), gru_out), 2))
         concat = torch.cat(concat, 1).flatten(end_dim=1)
-        out = self.fnn2(concat)
+        out = self.fnn2(concat.detach())
         log_probs = self.actor(out)
         action_dist = Categorical(logits=log_probs)
         log_prob =  action_dist.log_prob(action)

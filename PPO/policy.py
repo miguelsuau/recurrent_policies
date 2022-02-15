@@ -317,7 +317,6 @@ class IAMGRUPolicy(nn.Module):
             else:
                 feature_vector = self.fnn(obs)
             dset = obs[:, :, self.dset]
-            
         else:
             if self.image:
                 feature_vector = self.cnn(obs)
@@ -457,6 +456,11 @@ class IAMGRUPolicy_modified(nn.Module):
                 nn.ReLU()
                 )
 
+        self.fnn4 = nn.Sequential(
+                nn.Linear(hidden_size, hidden_size_2),
+                nn.ReLU()
+                )
+
         self.actor = nn.Linear(hidden_size_2, action_size)
         self.critic1 = nn.Linear(hidden_size, 1)
         self.critic2 = nn.Linear(hidden_size_2, 1)
@@ -494,7 +498,7 @@ class IAMGRUPolicy_modified(nn.Module):
         action = action_dist.sample()
         log_prob = action_dist.log_prob(action)
 
-        value = self.critic1(feature_vector.flatten(end_dim=1)) + self.critic2(self.fnn3(concat))
+        value = self.critic1(self.fnn4(feature_vector.flatten(end_dim=1))) + self.critic2(self.fnn3(concat))
 
         return action, value, log_prob
 
@@ -535,7 +539,7 @@ class IAMGRUPolicy_modified(nn.Module):
         log_prob =  action_dist.log_prob(action)
         entropy = action_dist.entropy()
 
-        value1 = self.critic1(feature_vector.flatten(end_dim=1))
+        value1 = self.critic1(self.fnn4(feature_vector.flatten(end_dim=1)))
         value2 = self.critic2(self.fnn3(concat))
 
         return value1, value2, log_prob, entropy
@@ -561,7 +565,7 @@ class IAMGRUPolicy_modified(nn.Module):
         gru_out, _ = self.gru(dset, self.hidden_memory)
         concat = torch.cat((feature_vector, gru_out), 2).flatten(end_dim=1)
         # out  = self.fnn2(concat)
-        value = self.critic1(feature_vector.flatten(end_dim=1)) + self.critic2(self.fnn3(concat))
+        value = self.critic1(self.fnn4(feature_vector.flatten(end_dim=1))) + self.critic2(self.fnn3(concat))
 
         return value
 

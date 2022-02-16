@@ -3,10 +3,10 @@ parameters:
         # Common hyperparameters
         simulator: 'global'
         env: 'warehouse'
-        obs_size: 37
+        obs_size: 69
         rollout_steps: 8
         num_actions: 4
-        name: 'mini-warehouse-mini'
+        name: 'mini-warehouse'
         hidden_size: 512
         hidden_size_2: 256
         seq_len: 1

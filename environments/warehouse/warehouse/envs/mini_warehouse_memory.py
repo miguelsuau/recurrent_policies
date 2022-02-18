@@ -178,8 +178,10 @@ class MiniWarehouseMemory(gym.Env):
             for j in range(self.n_robots_column):
                 robot_domain = [domain_rows[i], domain_columns[j],
                                 domain_rows[i+1], domain_columns[j+1]]
-                robot_position = [robot_domain[0] + self.robot_domain_size[0]//2,
-                                  robot_domain[1] + self.robot_domain_size[1]//2]
+                # robot_position = [robot_domain[0] + self.robot_domain_size[0]//2,
+                #                   robot_domain[1] + self.robot_domain_size[1]//2]
+                robot_position = [np.random.randint(robot_domain[0]+1, robot_domain[2]),
+                                  np.random.randint(robot_domain[1]+1, robot_domain[3])]
                 self.robots.append(Robot(self.robot_id, robot_position,
                                                   robot_domain, False))
                 self.robot_id += 1

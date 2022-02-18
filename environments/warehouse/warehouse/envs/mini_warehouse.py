@@ -127,11 +127,15 @@ class MiniWarehouse(gym.Env):
             # if robot.is_slow:
             position = robot.get_position
             bitmap[position[0], position[1], 1] += 2
+        for item in self.items:
+            pos = item.get_position
+            bitmap[pos[0], pos[1], 0] = item.get_waiting_time
+            # print(float(item.get_waiting_time)/self.max_waiting_time)
         im = bitmap[:, :, 0] - 2*bitmap[:, :, 1]
 
         if self.img is None:
             fig,ax = plt.subplots(1)
-            self.img = ax.imshow(im, vmin=-3, vmax=1)
+            self.img = ax.imshow(im, vmin=-8, vmax=16)
             for robot_id, robot in enumerate(self.robots):
                 domain = robot.get_domain
                 y = domain[0]
@@ -277,7 +281,11 @@ class MiniWarehouse(gym.Env):
                 #     reward = 0.1
                 #     self.items.remove(item)
                 #     break
-                reward = item_waiting_times[index]/max(item_waiting_times)
+                if item_waiting_times[index] == max(item_waiting_times):
+                    reward = 1.0    
+                else:
+                    reward = 0.3
+                # reward = item_waiting_times[index]/max(item_waiting_times)
                 # reward = 1.0
                 # self.items.remove(item)
                 # reward += 10

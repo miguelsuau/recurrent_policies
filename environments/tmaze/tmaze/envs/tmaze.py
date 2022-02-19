@@ -14,7 +14,7 @@ class Tmaze(gym.Env):
 
     def __init__(self, seed):
         self.seed(seed)
-        self.max_steps = 100
+        self.max_steps = 200
 
     def reset(self):
         self.value = np.random.choice([-1,1],1)

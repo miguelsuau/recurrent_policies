@@ -1,12 +1,12 @@
 parameters:
     main:
         env: 'tmaze'
-        obs_size: 41
+        obs_size: 101
         rollout_steps: 8
         num_actions: 4
         name: 'tmaze'
-        hidden_size: 32
-        hidden_size_2: 16
+        hidden_size: 128
+        hidden_size_2: 64
         seq_len: 32
         num_workers: 8
         epsilon: 0.1

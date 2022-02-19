@@ -5,7 +5,7 @@ from gym import spaces
 class Tmaze(gym.Env):
     
     CORRIDOR_LENGTH = 10
-    CORRIDOR_WIDTH = 4
+    CORRIDOR_WIDTH = 10
     ACTIONS = {0: 'UP',
                1: 'DOWN',
                2: 'LEFT',

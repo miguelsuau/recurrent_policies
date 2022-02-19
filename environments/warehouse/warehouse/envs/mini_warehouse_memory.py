@@ -18,15 +18,15 @@ class MiniWarehouseMemory(gym.Env):
                3: 'RIGHT'}
             #    4: 'NOOP'}
 
-    OBS_SIZE = 69
+    OBS_SIZE = 88
 
     def __init__(self, seed):
-        self.n_columns = 7
-        self.n_rows = 7
+        self.n_columns = 8
+        self.n_rows = 8
         self.n_robots_row = 1
         self.n_robots_column = 1
-        self.distance_between_shelves = 6
-        self.robot_domain_size = [7, 7]
+        self.distance_between_shelves = 7
+        self.robot_domain_size = [8, 8]
         self.prob_item_appears = 0.03
         # The learning robot
         self.learning_robot_id = 0
@@ -202,7 +202,7 @@ class MiniWarehouseMemory(gym.Env):
                         just_removed = loc not in self.just_removed_list
                         if item_locs is not None:
                             loc_free = loc not in item_locs
-                        if np.random.uniform() < self.prob_item_appears and loc_free and just_removed and len(self.items) < 4:
+                        if np.random.uniform() < self.prob_item_appears and loc_free and just_removed and len(self.items) < 3:
                             self.items.append(Item(self.item_id, loc))
                             self.item_id += 1
                             item_locs = [item.get_position for item in self.items]
@@ -213,7 +213,7 @@ class MiniWarehouseMemory(gym.Env):
                     just_removed = loc not in self.just_removed_list
                     if item_locs is not None:
                         loc_free = loc not in item_locs and loc 
-                    if np.random.uniform() < self.prob_item_appears and loc_free and just_removed and len(self.items) < 4:
+                    if np.random.uniform() < self.prob_item_appears and loc_free and just_removed and len(self.items) < 3:
                         self.items.append(Item(self.item_id, loc))
                         self.item_id += 1
                         item_locs = [item.get_position for item in self.items]

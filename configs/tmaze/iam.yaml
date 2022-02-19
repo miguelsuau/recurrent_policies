@@ -1,14 +1,14 @@
 parameters:
     main:
         env: 'tmaze'
-        obs_size: 22
+        obs_size: 41
         rollout_steps: 8
         num_actions: 4
         name: 'tmaze'
         hidden_size: 16
         hidden_size_2: 16
         hidden_memory_size: 16
-        seq_len: 16
+        seq_len: 32
         num_workers: 8
         epsilon: 0.1
         beta: 0.01
@@ -18,5 +18,5 @@ parameters:
         framestack: False
         total_steps: 5.0e+5
         eval_freq: 1.0e+4
-        dset: [0, 21]
+        dset: [0, 10, 20, 30, 40]
         dset_size: 0

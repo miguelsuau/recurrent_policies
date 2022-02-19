@@ -4,8 +4,8 @@ from gym import spaces
 
 class Tmaze(gym.Env):
     
-    CORRIDOR_LENGTH = 7
-    CORRIDOR_WIDTH = 3
+    CORRIDOR_LENGTH = 10
+    CORRIDOR_WIDTH = 4
     ACTIONS = {0: 'UP',
                1: 'DOWN',
                2: 'LEFT',
@@ -19,8 +19,8 @@ class Tmaze(gym.Env):
     def reset(self):
         self.value = np.random.choice([0,1],1)
         self.bitmap = np.zeros((self.CORRIDOR_WIDTH, self.CORRIDOR_LENGTH))
-        self.location = [np.random.choice(3), 0]
-        self.bitmap[self.location] = 1
+        self.location = [np.random.choice(self.CORRIDOR_WIDTH), 0]
+        self.bitmap[self.location[0], 0] = 1
         obs = np.append(self.bitmap.flatten(), self.value)
         self.steps = 0
         return obs

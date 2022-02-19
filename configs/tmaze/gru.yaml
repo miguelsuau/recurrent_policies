@@ -17,3 +17,4 @@ parameters:
         framestack: False
         total_steps: 5.0e+5
         eval_freq: 1.0e+4
+        save_frequency: 1.0e+4

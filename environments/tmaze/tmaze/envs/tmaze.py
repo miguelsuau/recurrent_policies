@@ -82,12 +82,12 @@ class Tmaze(gym.Env):
     def reward_done(self):
         reward = 0
         done = False
-        if self.location[1] == (self.CORRIDOR_LENGTH - 1):
+        if self.location[1] == self.CORRIDOR_LENGTH - 1:
             if self.location[0] == 0:
                 done = True
                 if self.value == 0:
                     reward = 1.0
-            if self.location[0] == 2:
+            if self.location[0] == self.CORRIDOR_WIDTH - 1:
                 done = True
                 if self.value == 1:
                     reward = 1.0

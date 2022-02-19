@@ -1,7 +1,7 @@
 parameters:
     main:
         env: 'tmaze'
-        obs_size: 8
+        obs_size: 22
         rollout_steps: 8
         num_actions: 4
         name: 'tmaze'
@@ -15,4 +15,5 @@ parameters:
         policy: 'FNNPolicy'
         load_policy: False
         framestack: False
-        total_steps: 1.0e+4
+        total_steps: 1.0e+5
+        eval_steps: 1.0e+4

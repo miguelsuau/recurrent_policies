@@ -273,35 +273,38 @@ class Experiment(object):
 
 
     def evaluate(self, step):
-            """Return mean sum of episodic rewards) for given model"""
-            episode_rewards = []
-            n_steps = 0
-            # copy agent to not altere hidden memory
-            agent = deepcopy(self.agent)
-            # eval_env = self.create_env()
-            eval_env = self.env
-            print('Evaluating policy...')
-            obs = eval_env.reset()
-            while n_steps < self.parameters['eval_steps']//self.parameters['num_workers']:
-                # reward_sum = np.array([0.0]*self.parameters['num_workers'])
-                reward_sum = 0
-                # NOTE: Episodes in all envs must terminate at the same time
-                agent.reset_hidden_memory([True]*self.parameters['num_workers'])
-                done = [False]*self.parameters['num_workers']
-                while not done[0]:
-                    n_steps += 1
-                    action, _, _ = agent.choose_action(obs)
-                    obs, _, done, info = eval_env.step(action)
-                    if self.parameters['render']:
-                        eval_env.render()
-                        time.sleep(.5)
-                    reward = np.mean(eval_env.get_original_reward())
-                    reward_sum += reward
-                episode_rewards.append(reward_sum)
-            print(episode_rewards)
-            self._run.log_scalar('mean episodic return', np.mean(episode_rewards), step)
-            # eval_env.close()
-            print('Done!')
+        """Return mean sum of episodic rewards) for given model"""
+        episode_rewards = []
+        n_steps = 0
+        # copy agent to not altere hidden memory
+        agent = deepcopy(self.agent)
+        # eval_env = self.create_env()
+        eval_env = self.env
+        print('Evaluating policy...')
+        obs = eval_env.reset()
+        done = [True]*self.parameters['num_workers']
+        reward_sum = np.array([0.0]*self.parameters['num_workers'])
+        while n_steps < self.parameters['eval_steps']//self.parameters['num_workers']:
+            # NOTE: Episodes in all envs must terminate at the same time
+            if agent.policy.recurrent:
+                agent.reset_hidden_memory(done)
+            n_steps += 1
+            action, _, _ = agent.choose_action(obs)
+            obs, _, done, info = eval_env.step(action)
+            if self.parameters['render'] and n_steps >= 9000:
+                eval_env.render()
+                time.sleep(.5)
+            
+            reward = eval_env.get_original_reward()
+            reward_sum += reward
+            for i, d in enumerate(done):
+                if d:
+                    episode_rewards.append(reward_sum[i])
+                    reward_sum[i] = 0
+        print(episode_rewards)
+        self._run.log_scalar('mean episodic return', np.mean(episode_rewards), step)
+        # eval_env.close()
+        print('Done!')
 
 if __name__ == '__main__':
     ex = sacred.Experiment('scalable-simulations')

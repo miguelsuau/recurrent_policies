@@ -29,10 +29,10 @@ class Tmaze(gym.Env):
         self.steps += 1
         self.location, self.bitmap = self.move(action) 
         
-        if self.location[1] == 0:
-            obs = np.append(self.bitmap.flatten(), self.value)
-        else:
-            obs = np.append(self.bitmap.flatten(), 0)
+        # if self.location[1] == 0:
+        #     obs = np.append(self.bitmap.flatten(), self.value)
+        # else:
+        obs = np.append(self.bitmap.flatten(), 0)
 
         reward, done = self.reward_done()
 

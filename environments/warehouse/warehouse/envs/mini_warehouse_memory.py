@@ -202,7 +202,7 @@ class MiniWarehouseMemory(gym.Env):
                         just_removed = loc not in self.just_removed_list
                         if item_locs is not None:
                             loc_free = loc not in item_locs
-                        if np.random.uniform() < self.prob_item_appears and loc_free and just_removed and len(self.items) < 3:
+                        if np.random.uniform() < self.prob_item_appears and loc_free and just_removed and len(self.items) < 4:
                             self.items.append(Item(self.item_id, loc))
                             self.item_id += 1
                             item_locs = [item.get_position for item in self.items]
@@ -213,7 +213,7 @@ class MiniWarehouseMemory(gym.Env):
                     just_removed = loc not in self.just_removed_list
                     if item_locs is not None:
                         loc_free = loc not in item_locs and loc 
-                    if np.random.uniform() < self.prob_item_appears and loc_free and just_removed and len(self.items) < 3:
+                    if np.random.uniform() < self.prob_item_appears and loc_free and just_removed and len(self.items) < 4:
                         self.items.append(Item(self.item_id, loc))
                         self.item_id += 1
                         item_locs = [item.get_position for item in self.items]

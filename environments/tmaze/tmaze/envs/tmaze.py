@@ -19,7 +19,7 @@ class Tmaze(gym.Env):
     def reset(self):
         self.value = np.random.choice([-1,1],1)
         self.bitmap = np.zeros((self.CORRIDOR_WIDTH, self.CORRIDOR_LENGTH))
-        self.location = [np.random.choice(self.CORRIDOR_WIDTH), np.random.choice(self.CORRIDOR_LENGTH//2 - 1)]
+        self.location = [np.random.choice(self.CORRIDOR_WIDTH), 0]#np.random.choice(self.CORRIDOR_LENGTH//2 - 1)]
         self.bitmap[self.location[0], self.location[1]] = 1
         obs = np.append(self.bitmap.flatten(), self.value)
         self.steps = 0

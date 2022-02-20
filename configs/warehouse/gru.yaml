@@ -9,7 +9,8 @@ parameters:
         name: 'mini-warehouse-memory'
         hidden_size: 512
         hidden_size_2: 256
-        seq_len: 32
+        seq_len: 64
+        batch_size: 64
         num_workers: 8
         epsilon: 0.1
         beta: 0.01

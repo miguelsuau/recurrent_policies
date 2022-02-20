@@ -10,14 +10,15 @@ parameters:
         hidden_size: 256
         hidden_size_2: 256
         hidden_memory_size: 256
-        seq_len: 32
+        seq_len: 64
+        batch_size: 64
         num_workers: 8
         epsilon: 0.1
         beta: 0.01
         render: False
         policy: 'IAMGRUPolicy'
         load_policy: False
-        framestack: False
+        framestack: False            
         # dset: [49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68]
         dset: [64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87]
         # dset: [49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72]

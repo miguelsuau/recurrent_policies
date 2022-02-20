@@ -64,7 +64,7 @@ class TreeMazeEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def _step(self, action):
+    def step(self, action):
         action = action.item()
         assert self.action_space.contains(action)
 
@@ -103,7 +103,7 @@ class TreeMazeEnv(gym.Env):
 
         return obs, reward, done or self._timestep > 1000, {}
 
-    def _reset(self):
+    def reset(self):
         #goals = range(2 ** self.height)
         #probas = np.arange(2 ** self.height, 0, -1)     # Unnormalized probas : 8, 7, 6, 5, 4, 3, 2, 1
         #probas = probas / probas.sum()

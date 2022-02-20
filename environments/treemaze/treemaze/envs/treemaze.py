@@ -50,7 +50,7 @@ class TreeMazeEnv(gym.Env):
         during the first H time-steps, then use it to navigate the maze.
     """
 
-    def __init__(self, seed, size=5, height=2):
+    def __init__(self, seed, size=5, height=3):
         self.size = size
         self.height = height
 

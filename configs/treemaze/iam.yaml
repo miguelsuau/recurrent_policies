@@ -1,13 +1,13 @@
 parameters:
     main:
         env: 'treemaze'
-        obs_size: 37
+        obs_size: 83
         rollout_steps: 8
         num_actions: 3
         name: 'treemaze'
-        hidden_size: 64
-        hidden_size_2: 64
-        hidden_memory_size: 64
+        hidden_size: 16
+        hidden_size_2: 16
+        hidden_memory_size: 2
         seq_len: 32
         num_workers: 8
         epsilon: 0.1

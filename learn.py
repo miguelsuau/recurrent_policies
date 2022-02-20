@@ -187,7 +187,7 @@ class Experiment(object):
             [self.make_env(env_name, i, self.seed) for i in range(self.parameters['num_workers'])],
             'spawn'
             ) 
-        env = VecNormalize(env, norm_reward=True, norm_obs=True)
+        env = VecNormalize(env, norm_reward=True, norm_obs=False)
 
         if self.parameters['framestack']:
             env = VecFrameStack(env, n_stack=self.parameters['n_stack'])
@@ -291,6 +291,7 @@ class Experiment(object):
             n_steps += 1
             action, _, _ = agent.choose_action(obs)
             obs, _, done, info = eval_env.step(action)
+            
             if self.parameters['render'] and n_steps >= 9000:
                 eval_env.render()
                 time.sleep(.5)

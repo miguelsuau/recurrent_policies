@@ -202,7 +202,7 @@ class Agent(object):
 
         value_loss2 = F.mse_loss(returns, clipped_values, reduction='none')
         value_loss = torch.max(value_loss1, value_loss2).mean()
-        value_loss = value_loss1.mean()
+        # value_loss = value_loss1.mean()
 
         # Entropy bonus
         entropy_bonus = -torch.mean(entropy)
@@ -211,7 +211,7 @@ class Agent(object):
         self.optimizer.zero_grad(set_to_none=True)
         loss.backward()
         # Clip grad norm
-        torch.nn.utils.clip_grad_norm_(self.policy.parameters(), max_grad_norm)
+        # torch.nn.utils.clip_grad_norm_(self.policy.parameters(), max_grad_norm)
         self.optimizer.step()
         return policy_loss, value_loss
 

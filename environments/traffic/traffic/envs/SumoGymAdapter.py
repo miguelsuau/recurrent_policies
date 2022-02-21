@@ -47,7 +47,7 @@ class SumoGymAdapter(gym.Env):
                 'seed': None
                 }
 
-    OBS_SIZE = 30
+    OBS_SIZE = 236
 
     def __init__(self, parameters, seed):
         """

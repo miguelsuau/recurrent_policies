@@ -3,7 +3,7 @@ parameters:
         # Common hyperparameters
         simulator: 'global'
         env: 'traffic'
-        obs_size: 30
+        obs_size: 236
         rollout_steps: 64
         num_actions: 2
         name: 'traffic'

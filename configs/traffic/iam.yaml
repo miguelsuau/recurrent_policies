@@ -3,7 +3,7 @@ parameters:
         # Common hyperparameters
         simulator: 'global'
         env: 'traffic'
-        obs_size: 30
+        obs_size: 236
         rollout_steps: 64
         num_actions: 2
         name: 'traffic'
@@ -19,5 +19,5 @@ parameters:
         load_policy: False
         framestack: False            
         dset_size: 0
-        dset: [13, 14, 28, 29]  
+        dset: [102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235]  
         # dset: null

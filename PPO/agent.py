@@ -208,6 +208,15 @@ class Agent(object):
         entropy_bonus = -torch.mean(entropy)
 
         loss = policy_loss + value_coef * value_loss + entropy_coef * entropy_bonus
+
+        # Regularization GRU input weights in IAM
+        if 'IAM' in self.policy.get_architecture():
+            if self.policy.dset is None:
+                for name, param in self.policy.gru.named_parameters():
+                    if name == 'weight_ih_l0':
+                        l1 = torch.norm(param, 1)
+                loss += l1
+
         self.optimizer.zero_grad(set_to_none=True)
         loss.backward()
         # Clip grad norm

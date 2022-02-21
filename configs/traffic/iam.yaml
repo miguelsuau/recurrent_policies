@@ -10,7 +10,7 @@ parameters:
         hidden_size: 256
         hidden_size_2: 256
         hidden_memory_size: 256
-        seq_len: 64
+        seq_len: 32
         num_workers: 8
         epsilon: 0.1
         beta: 0.01
@@ -19,5 +19,5 @@ parameters:
         load_policy: False
         framestack: False            
         dset_size: 0
-        dset: [13, 14, 28, 29]
+        dset: [13, 14, 28, 29]  
         # dset: null

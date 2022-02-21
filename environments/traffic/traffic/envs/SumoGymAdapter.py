@@ -88,9 +88,9 @@ class SumoGymAdapter(gym.Env):
         obs = np.array(self._observe())
         traffic_lights = self.ldm.get_traffic_lights()
         if self._parameters['traffic_lights']:
-            obs = np.concatenate((obs[:,8], obs[6,:], traffic_lights), axis=None)
+            obs = np.concatenate((obs[:,58], obs[59,:], traffic_lights), axis=None)
         else:
-            obs = np.concatenate((obs[:,8], obs[6,:]), axis=None)
+            obs = np.concatenate((obs[:,58], obs[59,:]), axis=None)
         # if self._parameters['num_frames'] > 1:
         #     obs = np.append(obs, self.prev_obs[:-len(obs)])
         #     self.prev_obs = np.copy(obs)

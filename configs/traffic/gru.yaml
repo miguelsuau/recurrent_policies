@@ -1,0 +1,19 @@
+parameters:
+    main:
+        # Common hyperparameters
+        simulator: 'global'
+        env: 'traffic'
+        obs_size: 30
+        rollout_steps: 64
+        num_actions: 4
+        name: 'traffic'
+        hidden_size: 512
+        hidden_size_2: 256
+        seq_len: 32
+        num_workers: 8
+        epsilon: 0.1
+        beta: 0.01
+        render: False
+        policy: 'GRUPolicy'
+        load_policy: False
+        framestack: False

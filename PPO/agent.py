@@ -215,7 +215,7 @@ class Agent(object):
                 for name, param in self.policy.gru.named_parameters():
                     if name == 'weight_ih_l0':
                         l1 = torch.norm(param, 1)
-                loss += .01 * l1
+                loss += .001 * l1
 
         self.optimizer.zero_grad(set_to_none=True)
         loss.backward()

@@ -18,15 +18,15 @@ class MiniWarehouse(gym.Env):
                3: 'RIGHT'}
             #    4: 'NOOP'}
 
-    OBS_SIZE = 69
+    OBS_SIZE = 37
 
     def __init__(self, seed):
-        self.n_columns = 7
-        self.n_rows = 7
+        self.n_columns = 5
+        self.n_rows = 5
         self.n_robots_row = 1
         self.n_robots_column = 1
-        self.distance_between_shelves = 6
-        self.robot_domain_size = [7, 7]
+        self.distance_between_shelves = 4
+        self.robot_domain_size = [5, 5]
         self.prob_item_appears = 0.05
         # The learning robot
         self.learning_robot_id = 0
@@ -281,11 +281,11 @@ class MiniWarehouse(gym.Env):
                 #     reward = 0.1
                 #     self.items.remove(item)
                 #     break
-                if item_waiting_times[index] == max(item_waiting_times):
-                    reward = 1.0    
-                else:
-                    reward = 0.3
-                # reward = item_waiting_times[index]/max(item_waiting_times)
+                # if item_waiting_times[index] == max(item_waiting_times):
+                #     reward = 1.0    
+                # else:
+                #     reward = 0.3
+                reward = item_waiting_times[index]/max(item_waiting_times)
                 # reward = 1.0
                 # self.items.remove(item)
                 # reward += 10

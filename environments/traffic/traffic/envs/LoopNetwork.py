@@ -8,9 +8,9 @@ class LoopNetwork(SumoGymAdapter):
         'box_bottom_corner': [9, 9], #[10, 12],
         'box_top_corner':  [68, 68], #[66, 68],
         'y_t': 6, # Yellow (traffic light) time
-        'resolutionInPixelsPerMeterX': 2,
-        'resolutionInPixelsPerMeterY': 2,
-        'car_tm': 6,
+        'resolutionInPixelsPerMeterX': 0.25,
+        'resolutionInPixelsPerMeterY': 0.25,
+        'car_tm': 10,
         'state_type': 'ldm_state', # The type of state to use as input for the network. ('bin' (Position Matrix), 'bin_light' (Position Light Matrix), 'value' (Value Matrix))
         'scaling_factor': 10,
         'fast': False,
@@ -27,7 +27,7 @@ class LoopNetwork(SumoGymAdapter):
         'reward_type': 'waiting_time',
         'lightPositions': {},#{"0": ((37.5,44.16), (39.2,44.16), (32.5,37.5), (32.5,39.16))},
         'traffic_lights': False,
-        'max_episode_steps': 250 
+        'max_episode_steps': 1000 
     }
 
     def __init__(self, seed):

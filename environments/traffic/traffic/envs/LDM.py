@@ -94,8 +94,7 @@ class ldm():
 
         tlState = {}
         for lightid in self._lightids:
-    	    tlState[lightid] = self.SUMO_client.trafficlight.getSubscriptionResults(lightid)
-
+            tlState[lightid] = self.SUMO_client.trafficlight.getSubscriptionResults(lightid)
         self._updateTrafficLights(tlState)
 
         if(self._lightids != None):

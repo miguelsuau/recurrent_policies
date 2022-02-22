@@ -128,9 +128,9 @@ class SumoHelper(object):
         car_sum = 0
 
         route_dict = {}
-        expected_value = self.parameters['car_tm'] * self.parameters['car_pr']
-
-        for t in range(self.parameters['car_tm']):
+        num_cars = random.randint(1, self.parameters['car_tm'])
+        expected_value = num_cars * self.parameters['car_pr']
+        for t in range(num_cars):
             random_number = random.randint(0, 100) * 0.01
             if random_number <= self.parameters['car_pr']:
                 route = self.generate_randomized_route()

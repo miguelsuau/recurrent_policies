@@ -47,7 +47,7 @@ class SumoGymAdapter(gym.Env):
                 'seed': None
                 }
 
-    OBS_SIZE = 236
+    OBS_SIZE = 30
 
     def __init__(self, parameters, seed):
         """
@@ -87,10 +87,14 @@ class SumoGymAdapter(gym.Env):
         self.ldm.step()
         obs = np.array(self._observe())
         traffic_lights = self.ldm.get_traffic_lights()
+        # if self._parameters['traffic_lights']:
+        #     obs = np.concatenate((obs[:,58], obs[59,:], traffic_lights), axis=None)
+        # else:
+        #     obs = np.concatenate((obs[:,58], obs[59,:]), axis=None)
         if self._parameters['traffic_lights']:
-            obs = np.concatenate((obs[:,58], obs[59,:], traffic_lights), axis=None)
+            obs = np.concatenate((obs[:,8], obs[6,:], traffic_lights), axis=None)
         else:
-            obs = np.concatenate((obs[:,58], obs[59,:]), axis=None)
+            obs = np.concatenate((obs[:,8], obs[6,:]), axis=None)
         # if self._parameters['num_frames'] > 1:
         #     obs = np.append(obs, self.prev_obs[:-len(obs)])
         #     self.prev_obs = np.copy(obs)
@@ -107,9 +111,8 @@ class SumoGymAdapter(gym.Env):
             self.ldm.close()
         except:
             logging.debug("No LDM to close. Perhaps it's the first instance of training")
-
-        logging.debug("Starting SUMO environment...")
         self._startSUMO()  
+        logging.debug("Starting SUMO environment...")
         obs = np.array(self._observe())
         traffic_lights = self.ldm.get_traffic_lights()
         if self._parameters['traffic_lights']:

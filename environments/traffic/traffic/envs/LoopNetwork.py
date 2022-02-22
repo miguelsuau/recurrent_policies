@@ -25,7 +25,7 @@ class LoopNetwork(SumoGymAdapter):
         'route_min_segments': 1,
         'local_rewards': False,
         'waiting_penalty': False,
-        'reward_type': 'waiting_time',
+        'reward_type': 'avg_speed',
         'lightPositions': {},#{"0": ((37.5,44.16), (39.2,44.16), (32.5,37.5), (32.5,39.16))},
         'traffic_lights': False,
         'max_episode_steps': 1000 

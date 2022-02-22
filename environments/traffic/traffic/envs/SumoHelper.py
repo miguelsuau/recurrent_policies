@@ -128,8 +128,7 @@ class SumoHelper(object):
         car_sum = 0
 
         route_dict = {}
-        num_cars = random.randint(1, self.parameters['car_tm'])
-        print('Number of cars: ', num_cars)
+        num_cars = random.randint(self.parameters['car_min'], self.parameters['car_tm'])
         expected_value = num_cars * self.parameters['car_pr']
         for t in range(num_cars):
             random_number = random.randint(0, 100) * 0.01

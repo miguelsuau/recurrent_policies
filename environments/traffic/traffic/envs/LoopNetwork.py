@@ -10,7 +10,8 @@ class LoopNetwork(SumoGymAdapter):
         'y_t': 6, # Yellow (traffic light) time
         'resolutionInPixelsPerMeterX': 0.25,
         'resolutionInPixelsPerMeterY': 0.25,
-        'car_tm': 10,
+        'car_tm': 15,
+        'car_min': 5,
         'state_type': 'ldm_state', # The type of state to use as input for the network. ('bin' (Position Matrix), 'bin_light' (Position Light Matrix), 'value' (Value Matrix))
         'scaling_factor': 10,
         'fast': False,

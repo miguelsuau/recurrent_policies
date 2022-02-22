@@ -829,10 +829,10 @@ class LSTMPolicy(nn.Module):
         super(LSTMPolicy, self).__init__()
         self.num_workers = num_workers
         self.recurrent = True
-        self.lstm = nn.LSTM(obs_size, hidden_size, batch_first=True)
+        self.lstm = nn.LSTM(hidden_size, hidden_size_2, batch_first=True)
         self.lstm.apply(init_weights)
         self.fnn = nn.Sequential(
-                nn.Linear(hidden_size, hidden_size_2),
+                nn.Linear(obs_size, hidden_size),
                 nn.ReLU()
                 )
         self.fnn.apply(init_weights)
@@ -840,15 +840,15 @@ class LSTMPolicy(nn.Module):
         self.actor.apply(init_weights)
         self.critic = nn.Linear(hidden_size_2, 1)
         self.critic.apply(init_weights)
-        self.hidden_memory_size = hidden_size
+        self.hidden_memory_size = hidden_size_2
         h = torch.zeros(1, self.num_workers, self.hidden_memory_size)
         c = torch.zeros(1, self.num_workers, self.hidden_memory_size)
         self.hidden_memory = (h, c)
 
     def forward(self, obs):
-
-        out, self.hidden_memory = self.lstm(obs, self.hidden_memory)
-        out = self.fnn(out)
+        out = self.fnn(obs)
+        out, self.hidden_memory = self.lstm(out, self.hidden_memory)
+        
         logits = self.actor(out.flatten(end_dim=1))
         action_dist = Categorical(logits=logits)
         action = action_dist.sample()
@@ -868,16 +868,16 @@ class LSTMPolicy(nn.Module):
         masks = torch.cat((torch.ones(masks.size(0), 1), masks), dim=1)
         hidden_memory = (old_hidden_memory[0][:,0].unsqueeze(0),
             old_hidden_memory[1][:,0].unsqueeze(0))
+        fnn_out = self.fnn(obs)
         for t in range(seq_len):
             hidden_memory = (hidden_memory[0]*masks[:,t].view(1,-1,1), 
                 hidden_memory[1]*masks[:,t].view(1,-1,1))
             out, hidden_memory = self.lstm(
-                obs[:,t].unsqueeze(1), 
+                fnn_out[:,t].unsqueeze(1), 
                 hidden_memory
                 )
             hidden_memories.append(out)
         hidden_memories = torch.cat(hidden_memories, 1).flatten(end_dim=1)
-        hidden_memories = self.fnn(hidden_memories)
         log_probs = self.actor(hidden_memories)
         action_dist = Categorical(logits=log_probs)
         log_prob =  action_dist.log_prob(action)
@@ -888,8 +888,8 @@ class LSTMPolicy(nn.Module):
         return value, log_prob, entropy
 
     def evaluate_value(self, obs):
-        out, _ = self.lstm(obs, self.hidden_memory)
-        out = self.fnn(out)
+        out = self.fnn(obs)
+        out, _ = self.lstm(out, self.hidden_memory)
         value = self.critic(out.flatten(end_dim=1))
         return value
 

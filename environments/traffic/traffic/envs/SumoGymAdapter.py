@@ -40,7 +40,7 @@ class SumoGymAdapter(gym.Env):
                 'generate_conf' : True,  # for automatic route/config generation
                 'libsumo' : True,  # whether libsumo is used instead of traci
                 'waiting_penalty' : 1,  # penalty for waiting
-                'reward_type': 'waiting_time',  # waiting_time or avg_speed
+                'reward_type': 'avg_speed',  # waiting_time or avg_speed
                 'lightPositions' : {},  # specify traffic light positions
                 'scaling_factor' : 1.0,  # for rescaling the reward? ask Miguel
                 'maxConnectRetries':50,  # maximum reattempts to connect by Traci
@@ -101,9 +101,11 @@ class SumoGymAdapter(gym.Env):
         done = self.ldm.isSimulationFinished()
         if self.ldm.SUMO_client.simulation.getTime() >= self._parameters['max_episode_steps']:
             done = True
-        global_reward = self._computeGlobalReward()
+        # global_reward = self._computeGlobalReward()
+        local_reward = self.ldm.getRewardByCorners(
+            self._parameters['box_bottom_corner'], self._parameters['box_top_corner'], self._parameters['local_rewards'])
         # as in openai gym, last one is the info list
-        return obs, global_reward, done, {}
+        return obs, local_reward, done, {}
 
     def reset(self):
         try:

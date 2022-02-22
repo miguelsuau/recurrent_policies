@@ -26,14 +26,14 @@ class GRUPolicy(nn.Module):
         super(GRUPolicy, self).__init__()
         self.num_workers = num_workers
         self.recurrent = True
-        self.gru = nn.GRU(hidden_size, hidden_size_2, batch_first=True)
+        self.gru = nn.GRU(obs_size, hidden_size, batch_first=True)
         self.fnn = nn.Sequential(
-                nn.Linear(obs_size, hidden_size),
+                nn.Linear(hidden_size, hidden_size_2),
                 nn.ReLU()
                 )
         self.actor = nn.Linear(hidden_size_2, action_size)
         self.critic = nn.Linear(hidden_size_2, 1)
-        self.hidden_memory_size = hidden_size_2
+        self.hidden_memory_size = hidden_size
         self.hidden_memory = torch.zeros(1, 
             self.num_workers,
             self.hidden_memory_size
@@ -41,9 +41,8 @@ class GRUPolicy(nn.Module):
 
     def forward(self, obs):
 
-        out = self.fnn(obs)
-        out, self.hidden_memory = self.gru(out, self.hidden_memory)
-        
+        out, self.hidden_memory = self.gru(obs, self.hidden_memory)
+        out = self.fnn(out)
         logits = self.actor(out.flatten(end_dim=1))
         action_dist = Categorical(logits=logits)
         action = action_dist.sample()
@@ -61,15 +60,15 @@ class GRUPolicy(nn.Module):
         # NOTE: We use masks to zero out hidden memory if last 
         # step belongs to previous episode. Mask_{t-1}*hidden_memory_t
         masks = torch.cat((torch.ones(masks.size(0), 1), masks), dim=1)
-        out_fnn = self.fnn(obs)
         hidden_memory = old_hidden_memory[:,0].unsqueeze(0)
         for t in range(seq_len):
             out, hidden_memory = self.gru(
-                out_fnn[:,t].unsqueeze(1), 
+                obs[:,t].unsqueeze(1), 
                 hidden_memory*masks[:,t].view(1,-1,1)
                 )
             hidden_memories.append(out)
         hidden_memories = torch.cat(hidden_memories, 1).flatten(end_dim=1)
+        hidden_memories = self.fnn(hidden_memories)
         log_probs = self.actor(hidden_memories)
         action_dist = Categorical(logits=log_probs)
         log_prob =  action_dist.log_prob(action)
@@ -80,8 +79,8 @@ class GRUPolicy(nn.Module):
         return value, log_prob, entropy
 
     def evaluate_value(self, obs):
-        out = self.fnn(obs)
-        out, _ = self.gru(out, self.hidden_memory)
+        out, _ = self.gru(obs, self.hidden_memory)
+        out = self.fnn(out)
         value = self.critic(out.flatten(end_dim=1))
         return value
 

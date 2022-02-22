@@ -23,7 +23,7 @@ class SumoGymAdapter(gym.Env):
         A retry is needed if the randomly chosen port
         to connect to SUMO is already in use.
     """
-    _DEFAULT_PARAMETERS = {'gui': True,  # gui or not
+    _DEFAULT_PARAMETERS = {'gui': False,  # gui or not
                 'scene':'loop_network',  # subdirectory in the aienvs/scenarios/Sumo directory where
                 'tlphasesfile':'sample.net.xml',  # file
                 'box_bottom_corner':(0, 0),  # bottom left corner of the observable frame

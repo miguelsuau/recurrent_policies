@@ -101,11 +101,11 @@ class SumoGymAdapter(gym.Env):
         done = self.ldm.isSimulationFinished()
         if self.ldm.SUMO_client.simulation.getTime() >= self._parameters['max_episode_steps']:
             done = True
-        # global_reward = self._computeGlobalReward()
-        local_reward = self.ldm.getRewardByCorners(
-            self._parameters['box_bottom_corner'], self._parameters['box_top_corner'], self._parameters['local_rewards'])
+        global_reward = self._computeGlobalReward()
+        # local_reward = self.ldm.getRewardByCorners(
+        #     self._parameters['box_bottom_corner'], self._parameters['box_top_corner'], self._parameters['local_rewards'])
         # as in openai gym, last one is the info list
-        return obs, local_reward, done, {}
+        return obs, global_reward, done, {}
 
     def reset(self):
         try:

@@ -11,7 +11,7 @@ class LoopNetwork(SumoGymAdapter):
         'resolutionInPixelsPerMeterX': 0.25,
         'resolutionInPixelsPerMeterY': 0.25,
         'car_tm': 6,
-        'car_min': 1,
+        'car_min': 6,
         'state_type': 'ldm_state', # The type of state to use as input for the network. ('bin' (Position Matrix), 'bin_light' (Position Light Matrix), 'value' (Value Matrix))
         'scaling_factor': 10,
         'fast': False,
@@ -25,7 +25,7 @@ class LoopNetwork(SumoGymAdapter):
         'route_min_segments': 1,
         'local_rewards': True,
         'waiting_penalty': False,
-        'reward_type': 'avg_speed',
+        'reward_type': 'waiting_time',
         'lightPositions': {},#{"0": ((37.5,44.16), (39.2,44.16), (32.5,37.5), (32.5,39.16))},
         'traffic_lights': False,
         'max_episode_steps': 1000 

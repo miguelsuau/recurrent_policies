@@ -42,7 +42,7 @@ class Agent(object):
         self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=learning_rate)
         self.lr_schedule = LRLinearSchedule(self.optimizer, total_steps, learning_rate, 1.0e-10)
         self.clip_schedule = LinearSchedule(total_steps, clip_range, 1.0e-5)
-        self.entropy_schedule = LinearSchedule(total_steps, entropy_coef, 1.0e-2)
+        self.entropy_schedule = LinearSchedule(total_steps, entropy_coef, 1.0e-5)
         self.buffer = Buffer(memory_size)
         self.step = 0
         self.save_path = os.path.join(save_path, self.policy.get_architecture())
@@ -181,7 +181,7 @@ class Agent(object):
             )
         # Normalize advantage
         advantages = torch.FloatTensor(batch['advantages']).flatten()
-        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+        # advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
 
         # importance sampling ratio
         old_log_probs = torch.FloatTensor(batch['log_probs']).flatten()

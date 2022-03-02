@@ -186,7 +186,6 @@ class Agent(object):
         # importance sampling ratio
         old_log_probs = torch.FloatTensor(batch['log_probs']).flatten()
         ratio = torch.exp(log_prob - old_log_probs)
-
         # policy loss
         policy_loss_1 = advantages * ratio
         policy_loss_2 = advantages * torch.clamp(ratio, 1.0 - clip_range, 1.0 + clip_range)

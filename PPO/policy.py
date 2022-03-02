@@ -29,7 +29,7 @@ class GRUPolicy(nn.Module):
         self.gru = nn.GRU(obs_size, hidden_size, batch_first=True)
         self.fnn = nn.Sequential(
                 nn.Linear(hidden_size, hidden_size_2),
-                nn.ReLU()
+                nn.Tanh()
                 )
         self.actor = nn.Linear(hidden_size_2, action_size)
         self.critic = nn.Linear(hidden_size_2, 1)
@@ -106,11 +106,11 @@ class ModifiedGRUPolicy(nn.Module):
             self.image = False
             self.fnn = nn.Sequential(
                 nn.Linear(obs_size, hidden_size),
-                nn.ReLU()
+                nn.Tanh()
                 )
             self.fnn2 = nn.Sequential(
                 nn.Linear(hidden_size+HIDDEN_MEMORY_SIZE, HIDDEN_MEMORY_SIZE),
-                nn.ReLU()
+                nn.Tanh()
                 )
         self.gru = nn.GRU(hidden_size, HIDDEN_MEMORY_SIZE, batch_first=True)
         self.actor = nn.Linear(HIDDEN_MEMORY_SIZE, action_size)
@@ -204,12 +204,12 @@ class FNNPolicy(nn.Module):
         else:
             self.fnn = nn.Sequential(
                 nn.Linear(obs_size, hidden_size),
-                nn.ReLU()
+                nn.Tanh()
                 )
             self.image = False
         self.fnn2 = nn.Sequential(
             nn.Linear(hidden_size, hidden_size_2),
-            nn.ReLU()
+            nn.Tanh()
             )
         self.actor = nn.Linear(hidden_size_2, action_size)
         self.critic = nn.Linear(hidden_size_2, 1)
@@ -277,7 +277,7 @@ class IAMGRUPolicy(nn.Module):
                 self.image = False
                 self.fnn = nn.Sequential(
                     nn.Linear(obs_size, hidden_size),
-                    nn.ReLU()
+                    nn.Tanh()
                     )
             self.gru = nn.GRU(len(dset), hidden_memory_size, batch_first=True)
         else:
@@ -288,14 +288,14 @@ class IAMGRUPolicy(nn.Module):
                 self.image = False
                 self.fnn = nn.Sequential(
                     nn.Linear(obs_size, hidden_size),
-                    nn.ReLU()
+                    nn.Tanh()
                     )
                 self.dhat = nn.Linear(obs_size, dset_size)
             self.gru = nn.GRU(dset_size, hidden_memory_size, batch_first=True)
 
         self.fnn2 = nn.Sequential(
                 nn.Linear(hidden_size + hidden_memory_size, hidden_size_2),
-                nn.ReLU()
+                nn.Tanh()
                 )
 
         self.actor = nn.Linear(hidden_size_2, action_size)
@@ -431,7 +431,7 @@ class IAMGRUPolicy_modified(nn.Module):
                 self.image = False
                 self.fnn = nn.Sequential(
                     nn.Linear(obs_size, hidden_size),
-                    nn.ReLU()
+                    nn.Tanh()
                     )
             self.gru = nn.GRU(len(dset), hidden_memory_size, batch_first=True)
         else:
@@ -442,24 +442,24 @@ class IAMGRUPolicy_modified(nn.Module):
                 self.image = False
                 self.fnn = nn.Sequential(
                     nn.Linear(obs_size, hidden_size),
-                    nn.ReLU()
+                    nn.Tanh()
                     )
                 self.dhat = nn.Linear(obs_size, dset_size)
             self.gru = nn.GRU(dset_size, hidden_memory_size, batch_first=True)
 
         self.fnn2 = nn.Sequential(
                 nn.Linear(hidden_size+hidden_memory_size, hidden_size_2),
-                nn.ReLU()
+                nn.Tanh()
                 )
         
         self.fnn3 = nn.Sequential(
                 nn.Linear(hidden_size+hidden_memory_size, hidden_size_2),
-                nn.ReLU()
+                nn.Tanh()
                 )
 
         self.fnn4 = nn.Sequential(
                 nn.Linear(hidden_size, hidden_size_2),
-                nn.ReLU()
+                nn.Tanh()
                 )
 
         self.actor = nn.Linear(hidden_size_2, action_size)
@@ -599,7 +599,7 @@ class IAMGRUPolicy_separate(nn.Module):
                 self.image = False
                 self.fnn = nn.Sequential(
                     nn.Linear(obs_size, hidden_size),
-                    nn.ReLU()
+                    nn.Tanh()
                     )
             self.gru = nn.GRU(len(dset), hidden_memory_size, batch_first=True)
         else:
@@ -610,14 +610,14 @@ class IAMGRUPolicy_separate(nn.Module):
                 self.image = False
                 self.fnn = nn.Sequential(
                     nn.Linear(obs_size, hidden_size),
-                    nn.ReLU()
+                    nn.Tanh()
                     )
                 self.dhat = nn.Linear(obs_size, dset_size)
             self.gru = nn.GRU(dset_size, hidden_memory_size, batch_first=True)
 
         self.fnn2 = nn.Sequential(
                 nn.Linear(hidden_size, hidden_size_2),
-                nn.ReLU()
+                nn.Tanh()
                 )
 
         self.actor = nn.Linear(hidden_size_2 + hidden_memory_size, action_size)
@@ -760,12 +760,12 @@ class FNNFSPolicy(nn.Module):
         else:
             self.fnn = nn.Sequential(
                 nn.Linear(obs_size+len(dset)*(n_stack-1), hidden_size),
-                nn.ReLU()
+                nn.Tanh()
                 )
             self.image = False
         self.fnn2 = nn.Sequential(
             nn.Linear(hidden_size, hidden_size_2),
-            nn.ReLU()
+            nn.Tanh()
             )
         self.actor = nn.Linear(hidden_size_2, action_size)
         self.critic = nn.Linear(hidden_size_2, 1)
@@ -832,7 +832,7 @@ class LSTMPolicy(nn.Module):
         self.lstm = nn.LSTM(hidden_size, hidden_size_2, batch_first=True)
         self.fnn = nn.Sequential(
                 nn.Linear(obs_size, hidden_size),
-                nn.ReLU()
+                nn.Tanh()
                 )
         self.actor = nn.Linear(hidden_size_2, action_size)
         self.critic = nn.Linear(hidden_size_2, 1)
@@ -908,22 +908,22 @@ class IAMLSTMPolicy(nn.Module):
         if dset is not None:        
             self.fnn = nn.Sequential(
                 nn.Linear(obs_size, hidden_size),
-                nn.ReLU()
+                nn.Tanh()
                 )
             self.fnn3 = nn.Sequential(
                 nn.Linear(hidden_size, hidden_size_2),
-                nn.ReLU()
+                nn.Tanh()
                 )
             self.lstm = nn.LSTM(len(dset), hidden_memory_size, batch_first=True)
         else:
             self.fnn = nn.Sequential(
                 nn.Linear(obs_size, hidden_size),
-                nn.ReLU()
+                nn.Tanh()
                 )
             self.lstm = nn.LSTM(obs_size, hidden_memory_size, batch_first=True)
         self.fnn2 = nn.Sequential(
                 nn.Linear(hidden_memory_size + hidden_size_2, hidden_size_2),
-                nn.ReLU()
+                nn.Tanh()
                 )
         self.actor = nn.Linear(hidden_size_2, action_size)
         self.critic = nn.Linear(hidden_size_2, 1)
@@ -1036,7 +1036,7 @@ class IAMLSTMPolicy_separate(nn.Module):
                 self.image = False
                 self.fnn = nn.Sequential(
                     nn.Linear(obs_size, hidden_size),
-                    nn.ReLU()
+                    nn.Tanh()
                     )
             self.lstm = nn.LSTM(len(dset), hidden_memory_size, batch_first=True)
         else:
@@ -1047,14 +1047,14 @@ class IAMLSTMPolicy_separate(nn.Module):
                 self.image = False
                 self.fnn = nn.Sequential(
                     nn.Linear(obs_size, hidden_size),
-                    nn.ReLU()
+                    nn.Tanh()
                     )
                 self.dhat = nn.Linear(obs_size, dset_size)
             self.gru = nn.GRU(dset_size, hidden_memory_size, batch_first=True)
 
         self.fnn2 = nn.Sequential(
                 nn.Linear(hidden_size, hidden_size_2),
-                nn.ReLU()
+                nn.Tanh()
                 )
 
         self.actor = nn.Linear(hidden_size_2 + hidden_memory_size, action_size)

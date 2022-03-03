@@ -1050,7 +1050,7 @@ class IAMLSTMPolicy_separate(nn.Module):
                     nn.Tanh()
                     )
                 self.dhat = nn.Linear(obs_size, dset_size)
-            self.gru = nn.GRU(dset_size, hidden_memory_size, batch_first=True)
+            self.lstm = nn.LSTM(dset_size, hidden_memory_size, batch_first=True)
 
         self.fnn2 = nn.Sequential(
                 nn.Linear(hidden_size, hidden_size_2),
@@ -1094,11 +1094,11 @@ class IAMLSTMPolicy_separate(nn.Module):
         hidden_memory = old_hidden_memory[:,0].unsqueeze(0)
         for t in range(seq_len):
             hidden_memory = hidden_memory*masks[:,t].view(1,-1,1)
-            gru_out, hidden_memory = self.gru(
+            lstm_out, hidden_memory = self.lstm(
                 dset[:,t].unsqueeze(1), 
                 hidden_memory
                 )
-            out.append(torch.cat((fnn_out[:,t].unsqueeze(1), gru_out), 2))
+            out.append(torch.cat((fnn_out[:,t].unsqueeze(1), lstm_out), 2))
         out = torch.cat(out, 1).flatten(end_dim=1)
         # out = self.fnn2(out)
         log_probs = self.actor(out)
@@ -1129,9 +1129,9 @@ class IAMLSTMPolicy_separate(nn.Module):
             # dset = self.dhat(obs)
             dset = obs
             
-        gru_out, _ = self.gru(dset, self.hidden_memory)
+        lstm_out, _ = self.lstm(dset, self.hidden_memory)
         out  = self.fnn2(feature_vector)
-        out = torch.cat((out, gru_out), 2).flatten(end_dim=1)
+        out = torch.cat((out, lstm_out), 2).flatten(end_dim=1)
         
         value = self.critic(out)
 
@@ -1139,13 +1139,11 @@ class IAMLSTMPolicy_separate(nn.Module):
 
     
     def reset_hidden_memory(self, worker):
-        
-        self.hidden_memory[:, worker] = torch.zeros(
-            1, 1, self.hidden_memory_size
-            )
+        self.hidden_memory[1][:, worker] = torch.zeros(1, 1, self.hidden_memory_size)
+        self.hidden_memory[0][:, worker] = torch.zeros(1, 1, self.hidden_memory_size)
     
     def get_architecture(self):
-        return 'IAMGRU_separate'
+        return 'IAMLSTM_separate'
 
     
     def forward(self, obs):
@@ -1166,9 +1164,9 @@ class IAMLSTMPolicy_separate(nn.Module):
             # dset = self.dhat(obs)
             dset = obs
         
-        gru_out, self.hidden_memory = self.gru(dset, self.hidden_memory)
+        lstm_out, self.hidden_memory = self.lstm(dset, self.hidden_memory)
         out  = self.fnn2(feature_vector)
-        out = torch.cat((out, gru_out), 2).flatten(end_dim=1)
+        out = torch.cat((out, lstm_out), 2).flatten(end_dim=1)
         
 
         logits = self.actor(out)

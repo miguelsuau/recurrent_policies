@@ -9,7 +9,7 @@ import os
 import sys
 sys.path.append("..")
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize, VecFrameStack
-from PPO import Agent, FNNPolicy, GRUPolicy, IAMGRUPolicy_separate, IAMGRUPolicy, IAMGRUPolicy_modified, FNNFSPolicy, LSTMPolicy, IAMLSTMPolicy
+from PPO import Agent, FNNPolicy, GRUPolicy, IAMGRUPolicy_separate, IAMGRUPolicy, IAMGRUPolicy_modified, FNNFSPolicy, LSTMPolicy, IAMLSTMPolicy, IAMLSTMPolicy_separate
 import gym
 import sacred
 from sacred.observers import MongoObserver
@@ -140,6 +140,18 @@ class Experiment(object):
                 dset=self.parameters['dset'],
                 dset_size=self.parameters['dset_size']
                 ) 
+
+        elif self.parameters['policy'] == 'IAMLSTMPolicy_separate':
+            policy = IAMLSTMPolicy_separate(self.parameters['obs_size'], 
+                self.parameters['num_actions'], 
+                self.parameters['hidden_size'],
+                self.parameters['hidden_size_2'],
+                self.parameters['hidden_memory_size'],
+                self.parameters['num_workers'],
+                dset=self.parameters['dset'],
+                dset_size=self.parameters['dset_size']
+                ) 
+
         elif self.parameters['policy'] == 'FNNFSPolicy':
             policy = FNNFSPolicy(self.parameters['obs_size'], 
                 self.parameters['num_actions'],
@@ -232,6 +244,7 @@ class Experiment(object):
                 if step % self.parameters['eval_freq'] == 0:
                    self.evaluate(step)
                    self.agent.save_policy()
+                   self.env.reset()
 
                 if self.agent.policy.recurrent:
                     self.agent.reset_hidden_memory(done)

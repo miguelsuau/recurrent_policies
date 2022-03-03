@@ -907,21 +907,21 @@ class IAMLSTMPolicy(nn.Module):
         
         if dset is not None:        
             self.fnn = nn.Sequential(
-                nn.Linear(obs_size, hidden_size),
+                nn.Linear(obs_size, hidden_size, bias=False),
                 nn.ReLU()
                 )
             self.lstm = nn.LSTM(len(dset), hidden_memory_size, batch_first=True)
         else:
             self.fnn = nn.Sequential(
-                nn.Linear(obs_size, hidden_size),
+                nn.Linear(obs_size, hidden_size, bias=False),
                 nn.ReLU()
                 )
             self.lstm = nn.LSTM(obs_size, hidden_memory_size, batch_first=True)
         self.fnn2 = nn.Sequential(
-                nn.Linear(hidden_memory_size + hidden_size, hidden_size_2),
+                nn.Linear(hidden_memory_size + hidden_size, hidden_size_2, bias=False),
                 nn.ReLU()
                 )
-        self.actor = nn.Linear(hidden_size_2, action_size)
+        self.actor = nn.Linear(hidden_size_2, action_size, bias=False)
         self.critic = nn.Linear(hidden_size_2, 1)
         self.hidden_memory_size = hidden_memory_size
         h = torch.zeros(1, self.num_workers, self.hidden_memory_size)
@@ -1030,7 +1030,7 @@ class IAMLSTMPolicy_separate(nn.Module):
             else:
                 self.image = False
                 self.fnn = nn.Sequential(
-                    nn.Linear(obs_size, hidden_size),
+                    nn.Linear(obs_size, hidden_size, bias=False),
                     nn.ReLU()
                     )
             self.lstm = nn.LSTM(len(dset), hidden_memory_size, batch_first=True)
@@ -1041,18 +1041,18 @@ class IAMLSTMPolicy_separate(nn.Module):
             else:
                 self.image = False
                 self.fnn = nn.Sequential(
-                    nn.Linear(obs_size, hidden_size),
+                    nn.Linear(obs_size, hidden_size, bias=False),
                     nn.ReLU()
                     )
                 self.dhat = nn.Linear(obs_size, dset_size)
             self.lstm = nn.LSTM(dset_size, hidden_memory_size, batch_first=True)
 
         self.fnn2 = nn.Sequential(
-                nn.Linear(hidden_size, hidden_size_2),
+                nn.Linear(hidden_size, hidden_size_2, bias=False),
                 nn.ReLU()
                 )
 
-        self.actor = nn.Linear(hidden_size_2 + hidden_memory_size, action_size)
+        self.actor = nn.Linear(hidden_size_2 + hidden_memory_size, action_size, bias=False)
         self.critic = nn.Linear(hidden_size_2 + hidden_memory_size, 1)
         self.hidden_memory_size = hidden_memory_size
         h = torch.zeros(1, self.num_workers, self.hidden_memory_size)

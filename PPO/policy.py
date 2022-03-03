@@ -910,10 +910,6 @@ class IAMLSTMPolicy(nn.Module):
                 nn.Linear(obs_size, hidden_size),
                 nn.ReLU()
                 )
-            self.fnn3 = nn.Sequential(
-                nn.Linear(hidden_size, hidden_size_2),
-                nn.ReLU()
-                )
             self.lstm = nn.LSTM(len(dset), hidden_memory_size, batch_first=True)
         else:
             self.fnn = nn.Sequential(
@@ -922,7 +918,7 @@ class IAMLSTMPolicy(nn.Module):
                 )
             self.lstm = nn.LSTM(obs_size, hidden_memory_size, batch_first=True)
         self.fnn2 = nn.Sequential(
-                nn.Linear(hidden_memory_size + hidden_size_2, hidden_size_2),
+                nn.Linear(hidden_memory_size + hidden_size, hidden_size_2),
                 nn.ReLU()
                 )
         self.actor = nn.Linear(hidden_size_2, action_size)
@@ -939,12 +935,11 @@ class IAMLSTMPolicy(nn.Module):
             # nondset_mask = np.ones(obs.shape[2], np.bool)
             # nondset_mask[self.dset] = 0
             feature_vector = self.fnn(obs)#[:, :, nondset_mask])
-            feature_vector = self.fnn3(feature_vector)
+            # feature_vector = self.fnn3(feature_vector)
             dset = obs[:, :, self.dset]
         else:
             feature_vector = self.fnn(obs)
             dset = obs
-        
         lstm_out, self.hidden_memory = self.lstm(dset, self.hidden_memory)
         out = torch.cat((feature_vector, lstm_out), 2).flatten(end_dim=1)
         out = self.fnn2(out)
@@ -965,7 +960,7 @@ class IAMLSTMPolicy(nn.Module):
             # nondset_mask = np.ones(obs.shape[2], np.bool)
             # nondset_mask[self.dset] = 0
             feature_vector = self.fnn(obs)#[:, :, nondset_mask])
-            feature_vector = self.fnn3(feature_vector)
+            # feature_vector = self.fnn3(feature_vector)
             dset = obs[:, :, self.dset] 
         else:
             feature_vector = self.fnn(obs)
@@ -1002,7 +997,7 @@ class IAMLSTMPolicy(nn.Module):
             # nondset_mask = np.ones(obs.shape[2], np.bool)
             # nondset_mask[self.dset] = 0
             feature_vector = self.fnn(obs)#[:, :, nondset_mask])
-            feature_vector = self.fnn3(feature_vector)
+            # feature_vector = self.fnn3(feature_vector)
             dset = obs[:, :, self.dset]
         else:
             feature_vector = self.fnn(obs)

@@ -20,4 +20,5 @@ parameters:
         framestack: False            
         dset_size: 0
         dset: [13, 14, 28, 29]  
+        eval_freq: 102400
         # dset: null

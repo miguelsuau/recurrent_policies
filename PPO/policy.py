@@ -1060,10 +1060,9 @@ class IAMLSTMPolicy_separate(nn.Module):
         self.actor = nn.Linear(hidden_size_2 + hidden_memory_size, action_size)
         self.critic = nn.Linear(hidden_size_2 + hidden_memory_size, 1)
         self.hidden_memory_size = hidden_memory_size
-        self.hidden_memory = torch.zeros(1, 
-            self.num_workers,
-            self.hidden_memory_size
-            )
+        h = torch.zeros(1, self.num_workers, self.hidden_memory_size)
+        c = torch.zeros(1, self.num_workers, self.hidden_memory_size)
+        self.hidden_memory = (h, c)
         self.dset = dset
 
     def evaluate_action(self, obs, action, old_hidden_memory, masks):
@@ -1091,9 +1090,11 @@ class IAMLSTMPolicy_separate(nn.Module):
         # NOTE: We use masks to zero out hidden memory if last 
         # step belongs to previous episode. Mask_{t-1}*hidden_memory_t
         masks = torch.cat((torch.ones(masks.size(0), 1), masks), dim=1)
-        hidden_memory = old_hidden_memory[:,0].unsqueeze(0)
+        hidden_memory = (old_hidden_memory[0][:,0].unsqueeze(0),
+            old_hidden_memory[1][:,0].unsqueeze(0))
         for t in range(seq_len):
-            hidden_memory = hidden_memory*masks[:,t].view(1,-1,1)
+            hidden_memory = (hidden_memory[0]*masks[:,t].view(1,-1,1), 
+                hidden_memory[1]*masks[:,t].view(1,-1,1))
             lstm_out, hidden_memory = self.lstm(
                 dset[:,t].unsqueeze(1), 
                 hidden_memory

@@ -28,7 +28,7 @@ class LoopNetwork(SumoGymAdapter):
         'reward_type': 'waiting_time',
         'lightPositions': {},#{"0": ((37.5,44.16), (39.2,44.16), (32.5,37.5), (32.5,39.16))},
         'traffic_lights': False,
-        'max_episode_steps': 250 
+        'max_episode_steps': 256
     }
 
     def __init__(self, seed):

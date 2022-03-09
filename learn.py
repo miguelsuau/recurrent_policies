@@ -200,7 +200,7 @@ class Experiment(object):
             [self.make_env(env_name, i, self.seed) for i in range(self.parameters['num_workers'])],
             'spawn'
             ) 
-        env = VecNormalize(env, norm_reward=True, norm_obs=True)
+        env = VecNormalize(env, norm_reward=False, norm_obs=False)
 
         if self.parameters['framestack']:
             env = VecFrameStack(env, n_stack=self.parameters['n_stack'])

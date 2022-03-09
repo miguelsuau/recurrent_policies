@@ -200,7 +200,7 @@ class Experiment(object):
             [self.make_env(env_name, i, self.seed) for i in range(self.parameters['num_workers'])],
             'spawn'
             ) 
-        env = VecNormalize(env, norm_reward=False, norm_obs=False)
+        env = VecNormalize(env, norm_reward=True, norm_obs=False)
 
         if self.parameters['framestack']:
             env = VecFrameStack(env, n_stack=self.parameters['n_stack'])
@@ -307,8 +307,8 @@ class Experiment(object):
             # print(eval_env.get_original_obs())
             # breakpoint()
             obs, reward, done, info = eval_env.step(action)
-            # print('norm reward', reward)
-            # print('original_reward', eval_env.get_original_reward())
+            print('norm reward', reward)
+            print('original_reward', eval_env.get_original_reward())
             
             if self.parameters['render'] and n_steps >= 9000:
                 eval_env.render()

@@ -216,9 +216,9 @@ class Experiment(object):
         """
         def _init():
             if 'local' in env_id:
-                env = gym.make(env_id, influence=influence, seed=seed+np.random.randint(1.0e+6))
+                env = gym.make(env_id, influence=influence, seed=seed+rank)
             else:
-                env = gym.make(env_id, seed=seed+np.random.randint(1.0e+6))
+                env = gym.make(env_id, seed=seed+rank)
             # env = Monitor(env, './logs')
             # env.seed(seed + rank)
             return env

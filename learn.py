@@ -191,6 +191,7 @@ class Experiment(object):
             )
         
         self.seed = seed
+        np.random.seed(seed)
         self.env = self.create_env()
         
     def create_env(self):
@@ -216,9 +217,9 @@ class Experiment(object):
         """
         def _init():
             if 'local' in env_id:
-                env = gym.make(env_id, influence=influence, seed=seed+rank)
+                env = gym.make(env_id, influence=influence, seed=seed+np.random.randint(1.0e+6))
             else:
-                env = gym.make(env_id, seed=seed+rank)
+                env = gym.make(env_id, seed=seed+np.random.randint(1.0e+6))
             # env = Monitor(env, './logs')
             # env.seed(seed + rank)
             return env
@@ -243,7 +244,7 @@ class Experiment(object):
                 if step % self.parameters['eval_freq'] == 0:
                    self.evaluate(step)
                    self.agent.save_policy()
-                   self.env.reset()
+                #    self.env.reset()
 
                 if self.agent.policy.recurrent:
                     self.agent.reset_hidden_memory(done)

@@ -191,7 +191,6 @@ class Experiment(object):
             )
         
         self.seed = seed
-        np.random.seed(seed)
         self.env = self.create_env()
         
     def create_env(self):

@@ -221,9 +221,9 @@ class Experiment(object):
         # self.env = env
 
     def create_env(self):
-        env_name = self.parameters['env'] + ':' + self.parameters['name'] + '-v0'
+        env_id = self.parameters['env'] + ':' + self.parameters['name'] + '-v0'
         env = SubprocVecEnv(
-            [self.make_env(env_name, i, self.seed) for i in range(self.parameters['num_workers'])],
+            [self.make_env(self.parameters['env'], env_id, i, self.seed) for i in range(self.parameters['num_workers'])],
             'spawn'
             ) 
 
@@ -232,7 +232,7 @@ class Experiment(object):
 
         return env
     
-    def make_env(self, env_id, rank, seed=0, influence=None):
+    def make_env(self, env_name, env_id, rank, seed=0, influence=None):
         """
         Utility function for multiprocessed env.
         :param env_id: (str) the environment ID
@@ -241,16 +241,16 @@ class Experiment(object):
         :param rank: (int) index of the subprocess
         """
         def _init():
-            # if self.parameters['env'] == 'minigrid':
-            env = gym.make(id='MiniGrid-RedBlueDoors-6x6-v0')
-            env = ImgObsWrapper(env) # Get rid of the 'mission' field
-            env = wrappers.GrayScaleObservation(env, keep_dim=True) # Gray scale
-            env = FeatureVectorWrapper(env)
-            env.seed(seed+np.random.randint(1.0e+6))
-            # else:
-                # env = gym.make(env_id, seed=seed+np.random.randint(1.0e+6))
-                # env = Monitor(env, './logs')
-                # env.seed(seed + rank)
+            if env_name == 'minigrid':
+                env = gym.make(id='MiniGrid-RedBlueDoors-6x6-v0')
+                env = ImgObsWrapper(env) # Get rid of the 'mission' field
+                env = wrappers.GrayScaleObservation(env, keep_dim=True) # Gray scale
+                env = FeatureVectorWrapper(env)
+                env.seed(seed+np.random.randint(1.0e+6))
+            else:
+                env = gym.make(env_id, seed=seed+np.random.randint(1.0e+6))
+                env = Monitor(env, './logs')
+                env.seed(seed + rank)
             return env
         # set_global_seeds(seed)
         return _init   

@@ -14,7 +14,7 @@ parameters:
         num_workers: 8
         epsilon: 0.1
         beta: 0.01
-        render: True
+        render: False
         policy: 'IAMGRUPolicy'
         load_policy: False
         framestack: False

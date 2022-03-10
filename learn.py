@@ -209,7 +209,11 @@ class Experiment(object):
         
         self.seed = seed
         np.random.seed(seed)
+        # env = gym.make(id='MiniGrid-RedBlueDoors-6x6-v0')
+        # env = wrappers.TimeLimit(env, max_episode_steps=1280)
         self.env = self.create_env()
+        # self.env = wrappers.TimeLimit(self.env, max_episode_steps=5000)
+        # self.env._max_episode_steps = 5000
         
         # env = gym.make(self.parameters['name'])
         # print(env)
@@ -242,14 +246,28 @@ class Experiment(object):
         """
         def _init():
             if env_name == 'minigrid':
-                env = gym.make(id='MiniGrid-RedBlueDoors-6x6-v0')
+                # gym.envs.register(
+                #     id='Long-v0',
+                #     entry_point='gym.envs.classic_control:MountainCarEnv',
+                #     max_episode_steps=500,
+                #     reward_threshold=-110.0,
+                # )
+                # gym.envs.register(
+                #     id='MiniGrid-RedBlueDoorsLong-6x6-v0',
+                #     entry_point='gym_minigrid.envs:RedBlueDoorEnv6x6',
+                #     tags={'wrapper_config.TimeLimit.max_episode_steps': 5000}
+                # )
+                # env = gym.make(id='MiniGrid-RedBlueDoors-6x6-v0')
+                env = gym.make(id='MiniGrid-MemoryS13Random-v0')
+                # env = wrappers.TimeLimit(env, max_episode_steps=1280)
                 env = ImgObsWrapper(env) # Get rid of the 'mission' field
                 env = wrappers.GrayScaleObservation(env, keep_dim=True) # Gray scale
                 env = FeatureVectorWrapper(env)
+                # env = wrappers.TimeLimit(env, max_episode_steps=5000)
                 env.seed(seed+np.random.randint(1.0e+6))
             else:
                 env = gym.make(env_id, seed=seed+np.random.randint(1.0e+6))
-                env = Monitor(env, './logs')
+                # env = Monitor(env, './logs')
                 env.seed(seed + rank)
             return env
         # set_global_seeds(seed)
@@ -338,7 +356,7 @@ class Experiment(object):
             if self.parameters['render']:
                 eval_env.render()
                 time.sleep(.5)
-                
+
             reward_sum += reward
             for i, d in enumerate(done):
                 if d:

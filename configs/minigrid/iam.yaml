@@ -22,3 +22,4 @@ parameters:
         dset: null
         # dset: [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
         total_steps: 5.0e+5
+        context_size: 128

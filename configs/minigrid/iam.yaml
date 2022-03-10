@@ -4,7 +4,7 @@ parameters:
         simulator: 'global'
         env: 'minigrid'
         obs_size: 49
-        rollout_steps: 128
+        rollout_steps: 16
         num_actions: 6
         name: 'MiniGrid-RedBlueDoors-6x6-v0'
         hidden_size: 256

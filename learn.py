@@ -21,6 +21,9 @@ import os
 from copy import deepcopy
 import time
 
+from gym_minigrid.wrappers import *
+from gym import wrappers
+
 def generate_path(path):
     """
     Generate a path to store e.g. logs, models and plots. Check if
@@ -77,6 +80,20 @@ def add_mongodb_observer():
         print("ONLY FILE STORAGE OBSERVER ADDED")
         from sacred.observers import FileStorageObserver
         ex.observers.append(FileStorageObserver.create('saved_runs'))
+
+
+class FeatureVectorWrapper(gym.core.ObservationWrapper):
+    """
+    Use the image as the only observation output, no language/mission.
+    """
+
+    def __init__(self, env):
+        super().__init__(env)
+        obs_shape = env.observation_space.shape
+        self.observation_space = obs_shape[0]*obs_shape[1]
+
+    def observation(self, obs):
+        return np.reshape(obs,-1)
 
 class Experiment(object):
     """
@@ -194,13 +211,21 @@ class Experiment(object):
         np.random.seed(seed)
         self.env = self.create_env()
         
+        # env = gym.make(self.parameters['name'])
+        # print(env)
+        # env = ImgObsWrapper(env) # Get rid of the 'mission' field
+        # env = wrappers.GrayScaleObservation(env, keep_dim=True) # Gray scale
+        # env = FeatureVectorWrapper(env)
+        # env.seed(seed+np.random.randint(1.0e+6))
+        # print(env)
+        # self.env = env
+
     def create_env(self):
         env_name = self.parameters['env'] + ':' + self.parameters['name'] + '-v0'
         env = SubprocVecEnv(
             [self.make_env(env_name, i, self.seed) for i in range(self.parameters['num_workers'])],
             'spawn'
             ) 
-        env = VecNormalize(env, norm_reward=False, norm_obs=False)
 
         if self.parameters['framestack']:
             env = VecFrameStack(env, n_stack=self.parameters['n_stack'])
@@ -216,12 +241,16 @@ class Experiment(object):
         :param rank: (int) index of the subprocess
         """
         def _init():
-            if 'local' in env_id:
-                env = gym.make(env_id, influence=influence, seed=seed+np.random.randint(1.0e+6))
-            else:
-                env = gym.make(env_id, seed=seed+np.random.randint(1.0e+6))
-            # env = Monitor(env, './logs')
-            # env.seed(seed + rank)
+            # if self.parameters['env'] == 'minigrid':
+            env = gym.make(id='MiniGrid-RedBlueDoors-6x6-v0')
+            env = ImgObsWrapper(env) # Get rid of the 'mission' field
+            env = wrappers.GrayScaleObservation(env, keep_dim=True) # Gray scale
+            env = FeatureVectorWrapper(env)
+            env.seed(seed+np.random.randint(1.0e+6))
+            # else:
+                # env = gym.make(env_id, seed=seed+np.random.randint(1.0e+6))
+                # env = Monitor(env, './logs')
+                # env.seed(seed + rank)
             return env
         # set_global_seeds(seed)
         return _init   
@@ -260,7 +289,7 @@ class Experiment(object):
                 rollout_step += 1
                 step += 1
                 episode_step += 1
-                episode_reward += np.mean(self.env.get_original_reward())
+                episode_reward += np.mean(reward)
 
                 if done[0]:
                     self.print_results(episode_reward, episode_step, step, episode)
@@ -304,19 +333,12 @@ class Experiment(object):
                 agent.reset_hidden_memory(done)
             n_steps += 1
             action, _, _ = agent.choose_action(obs)
-            # print(eval_env.get_original_obs())
-            # breakpoint()
             obs, reward, done, info = eval_env.step(action)
-            print('norm reward', reward)
-            print('original_reward', eval_env.get_original_reward())
             
-            if self.parameters['render'] and n_steps >= 9000:
+            if self.parameters['render']:
                 eval_env.render()
                 time.sleep(.5)
-            
-
-            reward = eval_env.get_original_reward()
-            
+                
             reward_sum += reward
             for i, d in enumerate(done):
                 if d:

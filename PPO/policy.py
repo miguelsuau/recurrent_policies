@@ -369,7 +369,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
         
         # attention
         obs_size = obs.shape[-1]
-        context_input = torch.cat((obs.unsqueeze(-1), torch.cat([self.hidden_memory.unsqueeze(-2)]*obs_size, -2)), -1)
+        context_input = torch.cat((obs.unsqueeze(-1), torch.cat([torch.swapaxes(self.hidden_memory, 0, 1).unsqueeze(-2)]*obs_size, -2)), -1)
         context_out = self.context(context_input)
         attention_weights = self.attention(context_out).squeeze(-1)
         dset = torch.sum(attention_weights*obs, dim=-1, keepdim=True)
@@ -437,7 +437,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
         
         # attention
         obs_size = obs.shape[-1]
-        context_input = torch.cat((obs.unsqueeze(-1), torch.cat([self.hidden_memory.unsqueeze(-2)]*obs_size, -2)), -1)
+        context_input = torch.cat((obs.unsqueeze(-1), torch.cat([torch.swapaxes(self.hidden_memory, 0, 1).unsqueeze(-2)]*obs_size, -2)), -1)
         context_out = self.context(context_input)
         attention_weights = self.attention(context_out).squeeze(-1)
         dset = torch.sum(attention_weights*obs, dim=-1, keepdim=True)

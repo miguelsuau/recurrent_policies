@@ -226,7 +226,8 @@ class Experiment(object):
                 #     tags={'wrapper_config.TimeLimit.max_episode_steps': 5000}
                 # )
                 # env = gym.make(id='MiniGrid-RedBlueDoors-6x6-v0')
-                env = gym.make(id='MiniGrid-MemoryS13Random-v0')
+                # env = gym.make(id='MiniGrid-MemoryS13Random-v0')
+                env = gym.make(id='MiniGrid-MemoryS11-v0')
                 # env = wrappers.TimeLimit(env, max_episode_steps=1280)
                 env = ImgObsWrapper(env) # Get rid of the 'mission' field
                 env = wrappers.GrayScaleObservation(env, keep_dim=True) # Gray scale

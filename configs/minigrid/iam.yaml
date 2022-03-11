@@ -15,7 +15,7 @@ parameters:
         epsilon: 0.1
         beta: 0.01
         render: False
-        policy: 'IAMGRUPolicy'
+        policy: 'IAMGRUPolicy_dynamic'
         load_policy: False
         framestack: False
         dset_size: 147

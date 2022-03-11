@@ -90,6 +90,7 @@ class FeatureVectorWrapper(gym.core.ObservationWrapper):
         self.observation_space = obs_shape[0]*obs_shape[1]
 
     def observation(self, obs):
+        obs = obs[:,:,0]
         return np.reshape(obs,-1)
 
 class Experiment(object):
@@ -228,6 +229,7 @@ class Experiment(object):
                 # env = gym.make(id='MiniGrid-RedBlueDoors-6x6-v0')
                 # env = gym.make(id='MiniGrid-MemoryS13Random-v0')
                 env = gym.make(id='MiniGrid-MemoryS11-v0')
+                # env = RGBImgPartialObsWrapper(env)
                 # env = wrappers.TimeLimit(env, max_episode_steps=1280)
                 env = ImgObsWrapper(env) # Get rid of the 'mission' field
                 # env = wrappers.GrayScaleObservation(env, keep_dim=True) # Gray scale
@@ -319,8 +321,6 @@ class Experiment(object):
             if agent.policy.recurrent:
                 agent.reset_hidden_memory(done)
             n_steps += 1
-            # print(obs.reshape(3,7,7))
-            # breakpoint()
             action, _, _ = agent.choose_action(obs)
             obs, reward, done, info = eval_env.step(action)
             

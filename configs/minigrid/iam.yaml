@@ -7,9 +7,9 @@ parameters:
         rollout_steps: 8
         num_actions: 6
         name: 'MiniGrid-RedBlueDoors-6x6-v0'
-        hidden_size: 256
-        hidden_size_2: 256
-        hidden_memory_size: 256
+        hidden_size: 128
+        hidden_size_2: 128
+        hidden_memory_size: 128
         seq_len: 8
         num_workers: 8
         epsilon: 0.1
@@ -18,8 +18,8 @@ parameters:
         policy: 'IAMGRUPolicy_dynamic'
         load_policy: False
         framestack: False
-        dset_size: 147
+        dset_size: 64
         dset: null
         # dset: [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
         total_steps: 2.0e+6
-        context_size: 128
+        context_size: 64

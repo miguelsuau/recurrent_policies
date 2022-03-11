@@ -319,7 +319,7 @@ class IAMGRUPolicy(nn.Module):
 
 class IAMGRUPolicy_dynamic(nn.Module):
 
-    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, hidden_memory_size, context_size, num_workers, dset=None, dset_size=0):
+    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, hidden_memory_size, attention_size, num_workers, dset=None, dset_size=0):
         super(IAMGRUPolicy_dynamic, self).__init__()
         self.num_workers = num_workers
         self.recurrent = True
@@ -334,12 +334,13 @@ class IAMGRUPolicy_dynamic(nn.Module):
                 nn.ReLU()
                 )
 
-        self.context = nn.Sequential(
-            nn.Linear(hidden_memory_size + 1, context_size),
-            nn.Tanh()            
-            )
+        self.query = nn.Linear(hidden_memory_size, attention_size)
+        self.key = nn.Linear(1, attention_size)
+    
+        self.tanh = nn.Tanh()
+            
         self.attention = nn.Sequential(
-            nn.Linear(context_size, 1),
+            nn.Linear(attention_size, 1),
             nn.Softmax(dim=-2)
         )
 
@@ -368,10 +369,12 @@ class IAMGRUPolicy_dynamic(nn.Module):
             feature_vector = self.fnn(obs)
         
         # attention
-        obs_size = obs.shape[-1]
-        context_input = torch.cat((obs.unsqueeze(-1), torch.cat([torch.swapaxes(self.hidden_memory, 0, 1).unsqueeze(-2)]*obs_size, -2)), -1)
-        context_out = self.context(context_input)
-        attention_weights = self.attention(context_out).squeeze(-1)
+        query_out = self.query(torch.swapaxes(self.hidden_memory, 0, 1))
+        key_out = self.key(obs.unsqueeze(-1))
+        context = self.tanh(query_out.unsqueeze(-2) + key_out)
+        # context_input = torch.cat((obs.unsqueeze(-1), torch.cat([torch.swapaxes(self.hidden_memory, 0, 1).unsqueeze(-2)]*obs_size, -2)), -1)
+        # context_out = self.context(context_input)
+        attention_weights = self.attention(context).squeeze(-1)
         dset = torch.sum(attention_weights*obs, dim=-1, keepdim=True)
         
         gru_out, self.hidden_memory = self.gru(dset, self.hidden_memory)
@@ -405,14 +408,14 @@ class IAMGRUPolicy_dynamic(nn.Module):
         for t in range(seq_len):
 
             hidden_memory = hidden_memory*masks[:,t].view(1,-1,1)
-            # hidden_memory2 = hidden_memory*masks[:,t].view(1, -1, 1)
-
+            
             # attention
-            obs_size = obs.shape[-1]
-            context_input = torch.cat((obs[:,t].unsqueeze(1).unsqueeze(-1), torch.cat([torch.swapaxes(hidden_memory, 0, 1).unsqueeze(-2)]*obs_size, -2)), -1)
-            context_out = self.context(context_input)
-            attention_weights = self.attention(context_out).squeeze(-1)
+            query_out = self.query(torch.swapaxes(hidden_memory, 0, 1))
+            key_out = self.key(obs[:,t].unsqueeze(1).unsqueeze(-1))
+            context = self.tanh(query_out.unsqueeze(-2) + key_out)
+            attention_weights = self.attention(context).squeeze(-1)
             dset = torch.sum(attention_weights*obs[:,t].unsqueeze(1), dim=-1, keepdim=True)
+
             gru_out, hidden_memory = self.gru(dset, hidden_memory)
             out.append(torch.cat((feature_vector[:,t].unsqueeze(1), gru_out), 2))
 
@@ -436,10 +439,12 @@ class IAMGRUPolicy_dynamic(nn.Module):
             feature_vector = self.fnn(obs)
         
         # attention
-        obs_size = obs.shape[-1]
-        context_input = torch.cat((obs.unsqueeze(-1), torch.cat([torch.swapaxes(self.hidden_memory, 0, 1).unsqueeze(-2)]*obs_size, -2)), -1)
-        context_out = self.context(context_input)
-        attention_weights = self.attention(context_out).squeeze(-1)
+        query_out = self.query(torch.swapaxes(self.hidden_memory, 0, 1))
+        key_out = self.key(obs.unsqueeze(-1))
+        context = self.tanh(query_out.unsqueeze(-2) + key_out)
+        # context_input = torch.cat((obs.unsqueeze(-1), torch.cat([torch.swapaxes(self.hidden_memory, 0, 1).unsqueeze(-2)]*obs_size, -2)), -1)
+        # context_out = self.context(context_input)
+        attention_weights = self.attention(context).squeeze(-1)
         dset = torch.sum(attention_weights*obs, dim=-1, keepdim=True)
             
         gru_out, _ = self.gru(dset, self.hidden_memory)

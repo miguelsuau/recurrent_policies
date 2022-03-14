@@ -338,7 +338,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
         # self.key = nn.Linear(1, attention_size)
         self.key = nn.Linear(obs_size, attention_size)
     
-        self.relu = nn.ReLU()
+        self.tanh = nn.Tanh()
             
         # self.attention = nn.Sequential(
         #     nn.Linear(attention_size, 1),
@@ -393,7 +393,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
         # attention
         # query_out = self.query(torch.swapaxes(self.hidden_memory, 0, 1))
         key_out = self.key(obs)
-        context = self.relu(key_out)
+        context = self.tanh(key_out)
         attention_weights = self.attention(context).squeeze(-1)
         dset = torch.sum(attention_weights*obs, dim=-1, keepdim=True)
 
@@ -454,7 +454,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
             # attention
             # query_out = self.query(torch.swapaxes(hidden_memory, 0, 1))
             key_out = self.key(obs[:,t].unsqueeze(1))
-            context = self.relu(key_out)
+            context = self.tanh(key_out)
             attention_weights = self.attention(context).squeeze(-1)
             dset = torch.sum(attention_weights*obs[:,t].unsqueeze(1), dim=-1, keepdim=True)
 
@@ -504,7 +504,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
         # attention
         # query_out = self.query(torch.swapaxes(self.hidden_memory, 0, 1))
         key_out = self.key(obs)
-        context = self.relu(key_out)
+        context = self.tanh(key_out)
         attention_weights = self.attention(context).squeeze(-1)
         dset = torch.sum(attention_weights*obs, dim=-1, keepdim=True)
 

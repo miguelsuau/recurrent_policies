@@ -91,10 +91,10 @@ class FeatureVectorWrapper(gym.core.ObservationWrapper):
 
     def observation(self, obs):
         obs = obs[:,:,0].astype(int)
-        obs[np.where(obs==1)] = 0
-        obs[np.where(obs==2)] = 1
-        obs[np.where(obs==5)] = 2
-        obs[np.where(obs==6)] = -2
+        # obs[np.where(obs==1)] = 0
+        # obs[np.where(obs==2)] = 1
+        # obs[np.where(obs==5)] = 2
+        # obs[np.where(obs==6)] = -2
         return np.reshape(obs,-1)
 
 class Experiment(object):
@@ -232,7 +232,7 @@ class Experiment(object):
                 # )
                 # env = gym.make(id='MiniGrid-RedBlueDoors-6x6-v0')
                 # env = gym.make(id='MiniGrid-MemoryS13Random-v0')
-                env = gym.make(id='MiniGrid-MemoryS13-v0')
+                env = gym.make(id='MiniGrid-MemoryS13Random-v0')
                 # env = RGBImgPartialObsWrapper(env)
                 # env = wrappers.TimeLimit(env, max_episode_steps=1280)
                 env = ImgObsWrapper(env) # Get rid of the 'mission' field
@@ -289,8 +289,8 @@ class Experiment(object):
                     episode_reward = 0
                     episode_step = 0
                     episode += 1
-                
-                self.agent.bootstrap(obs)
+            
+            self.agent.bootstrap(obs)
 
             if self.agent.buffer.is_full:
                 self.agent.update()
@@ -351,4 +351,3 @@ if __name__ == '__main__':
     def main(parameters, seed, _run):
         exp = Experiment(parameters, _run, seed)
         exp.learn()
-

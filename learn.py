@@ -1,3 +1,4 @@
+from logging import INFO
 from PPO.agent import Agent
 import numpy as np
 import os
@@ -96,6 +97,20 @@ class FeatureVectorWrapper(gym.core.ObservationWrapper):
         obs[np.where(obs==5)] = 2
         obs[np.where(obs==6)] = -2
         return np.reshape(obs,-1)
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        obs = self.observation(obs)
+
+        if tuple(self.agent_pos) == self.success_pos:
+            reward = max(0, 1 - 0.01 * self.step_count)
+            done = True
+        if tuple(self.agent_pos) == self.failure_pos:
+            reward = 0
+            done = True
+
+        return obs, reward, done, info
+
 
 class Experiment(object):
     """
@@ -231,8 +246,8 @@ class Experiment(object):
                 #     tags={'wrapper_config.TimeLimit.max_episode_steps': 5000}
                 # )
                 # env = gym.make(id='MiniGrid-RedBlueDoors-6x6-v0')
-                # env = gym.make(id='MiniGrid-MemoryS13Random-v0')
-                env = gym.make(id='MiniGrid-MemoryS13-v0')
+                env = gym.make(id='MiniGrid-MemoryS13Random-v0')
+                # env = gym.make(id='MiniGrid-MemoryS13-v0')
                 # env = RGBImgPartialObsWrapper(env)
                 # env = wrappers.TimeLimit(env, max_episode_steps=1280)
                 env = ImgObsWrapper(env) # Get rid of the 'mission' field

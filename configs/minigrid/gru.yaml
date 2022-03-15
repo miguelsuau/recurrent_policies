@@ -7,9 +7,9 @@ parameters:
         rollout_steps: 8
         num_actions: 6
         name: 'MiniGrid-RedBlueDoors-6x6-v0'
-        hidden_size: 512
+        hidden_size: 192
         hidden_size_2: 256
-        seq_len: 8
+        seq_len: 32
         num_workers: 8
         epsilon: 0.1
         beta: 0.01

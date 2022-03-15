@@ -91,10 +91,10 @@ class FeatureVectorWrapper(gym.core.ObservationWrapper):
 
     def observation(self, obs):
         obs = obs[:,:,0].astype(int)
-        # obs[np.where(obs==1)] = 0
-        # obs[np.where(obs==2)] = 1
-        # obs[np.where(obs==5)] = 2
-        # obs[np.where(obs==6)] = -2
+        obs[np.where(obs==1)] = 0
+        obs[np.where(obs==2)] = 1
+        obs[np.where(obs==5)] = 2
+        obs[np.where(obs==6)] = -2
         return np.reshape(obs,-1)
 
 class Experiment(object):

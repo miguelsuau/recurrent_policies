@@ -18,3 +18,4 @@ parameters:
         load_policy: False
         framestack: False
         total_steps: 2.0e+6
+        eval_freq: 5.0e+4

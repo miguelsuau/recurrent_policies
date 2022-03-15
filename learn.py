@@ -106,7 +106,7 @@ class FeatureVectorWrapper(gym.core.ObservationWrapper):
             reward = max(0, 1 - 0.005 * self.step_count)
             done = True
         if tuple(self.agent_pos) == self.failure_pos:
-            reward = 0
+            reward = -1
             done = True
 
         return obs, reward, done, info

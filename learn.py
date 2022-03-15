@@ -232,7 +232,7 @@ class Experiment(object):
                 # )
                 # env = gym.make(id='MiniGrid-RedBlueDoors-6x6-v0')
                 # env = gym.make(id='MiniGrid-MemoryS13Random-v0')
-                env = gym.make(id='MiniGrid-MemoryS13Random-v0')
+                env = gym.make(id='MiniGrid-MemoryS13-v0')
                 # env = RGBImgPartialObsWrapper(env)
                 # env = wrappers.TimeLimit(env, max_episode_steps=1280)
                 env = ImgObsWrapper(env) # Get rid of the 'mission' field

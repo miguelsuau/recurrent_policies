@@ -98,20 +98,20 @@ class FeatureVectorWrapper(gym.core.ObservationWrapper):
         obs[np.where(obs==6)] = -2
         return np.reshape(obs,-1)
 
-    def step(self, action):
-        obs, reward, done, info = self.env.step(action)
-        obs = self.observation(obs)
+    # def step(self, action):
+    #     obs, reward, done, info = self.env.step(action)
+    #     obs = self.observation(obs)
 
-        if tuple(self.agent_pos) == self.success_pos:
-            reward = max(0, 1 - 0.005 * self.step_count)
-            # reward = 1
-            done = True
-        if tuple(self.agent_pos) == self.failure_pos:
-            reward = 0
-            done = True
+    #     if tuple(self.agent_pos) == self.success_pos:
+    #         reward = max(0, 1 - 0.005 * self.step_count)
+    #         # reward = 1
+    #         done = True
+    #     if tuple(self.agent_pos) == self.failure_pos:
+    #         reward = 0
+    #         done = True
             
 
-        return obs, reward, done, info
+    #     return obs, reward, done, info
 
 
 class Experiment(object):

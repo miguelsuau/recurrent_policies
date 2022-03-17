@@ -96,7 +96,14 @@ class FeatureVectorWrapper(gym.core.ObservationWrapper):
         obs[np.where(obs==2)] = 1
         obs[np.where(obs==5)] = 2
         obs[np.where(obs==6)] = -2
-        return np.reshape(obs,-1)
+        dset = obs[np.where(obs == -2)]
+        dset = np.append(dset, obs[np.where(obs == 2)])
+        if len(dset) > 0:
+            dset = np.mean(dset)
+        else:
+            dset = 0
+        obs = np.append(np.reshape(obs,-1), dset)
+        return obs
 
     # def step(self, action):
     #     obs, reward, done, info = self.env.step(action)
@@ -348,7 +355,8 @@ class Experiment(object):
             if self.parameters['render']:
                 eval_env.render()
                 time.sleep(.5)
-
+            # print(obs)
+            # breakpoint()
             reward_sum += reward
             for i, d in enumerate(done):
                 if d:

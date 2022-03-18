@@ -148,6 +148,7 @@ class Experiment(object):
                 self.parameters['hidden_size_2'],
                 self.parameters['hidden_memory_size'],
                 self.parameters['attention_size'],
+                self.parameters['temperature'],
                 self.parameters['num_workers'],
                 dset=self.parameters['dset'],
                 dset_size=self.parameters['dset_size']

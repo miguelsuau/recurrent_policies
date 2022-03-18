@@ -319,7 +319,7 @@ class IAMGRUPolicy(nn.Module):
 
 class IAMGRUPolicy_dynamic(nn.Module):
 
-    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, hidden_memory_size, attention_size, num_workers, dset=None, dset_size=0):
+    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, hidden_memory_size, attention_size, temperature, num_workers, dset=None, dset_size=0):
         super(IAMGRUPolicy_dynamic, self).__init__()
         self.num_workers = num_workers
         self.recurrent = True
@@ -347,13 +347,13 @@ class IAMGRUPolicy_dynamic(nn.Module):
 
         self.attention = nn.Sequential(
             nn.Linear(obs_size, attention_size),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(attention_size, attention_size),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(attention_size, obs_size),
-            nn.Softmax(dim=-1)
         )
-
+        self.temperature = temperature
+        self.softmax = nn.Softmax(dim=-1)
         # self.attention = nn.MultiheadAttention(2, 2, kdim=1, vdim=1, batch_first=True)
 
         self.gru = nn.GRU(1, hidden_memory_size, batch_first=True)
@@ -399,6 +399,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
         # key_out = self.key(obs)
         # context = self.tanh(key_out)
         attention_weights = self.attention(obs).squeeze(-1)
+        attention_weights = self.softmax(attention_weights/self.temperature)
         dset = torch.sum(attention_weights*obs, dim=-1, keepdim=True)
 
         
@@ -460,6 +461,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
             # key_out = self.key(obs[:,t].unsqueeze(1))
             # context = self.tanh(key_out)
             attention_weights = self.attention(obs[:,t].unsqueeze(1)).squeeze(-1)
+            attention_weights = self.softmax(attention_weights/self.temperature)
             dset = torch.sum(attention_weights*obs[:,t].unsqueeze(1), dim=-1, keepdim=True)
 
             # attention
@@ -510,6 +512,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
         # key_out = self.key(obs)
         # context = self.tanh(key_out)
         attention_weights = self.attention(obs).squeeze(-1)
+        attention_weights = self.softmax(attention_weights/self.temperature)
         dset = torch.sum(attention_weights*obs, dim=-1, keepdim=True)
 
         # attention

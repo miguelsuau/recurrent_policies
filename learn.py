@@ -97,13 +97,13 @@ class FeatureVectorWrapper(gym.core.ObservationWrapper):
         obs[np.where(obs==5)] = 2
         obs[np.where(obs==6)] = -2
         obs = np.reshape(obs,-1)
-        # dset = obs[np.where(obs == -2)]
-        # dset = np.append(dset, obs[np.where(obs == 2)])
-        # if len(dset) > 0:
-        #     dset = np.mean(dset)
-        # else:
-        #     dset = 0
-        # obs = np.append(obs, dset)
+        dset = obs[np.where(obs == -2)]
+        dset = np.append(dset, obs[np.where(obs == 2)])
+        if len(dset) > 0:
+            dset = np.mean(dset)
+        else:
+            dset = 0
+        obs = np.append(obs, dset)
         return obs
 
     # def step(self, action):

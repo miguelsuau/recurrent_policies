@@ -3,7 +3,7 @@ parameters:
         # Common hyperparameters
         simulator: 'global'
         env: 'minigrid'
-        obs_size: 49
+        obs_size: 50
         rollout_steps: 8
         num_actions: 6
         name: 'MiniGrid-RedBlueDoors-6x6-v0'
@@ -15,7 +15,7 @@ parameters:
         epsilon: 0.1
         beta: 0.01
         render: False
-        policy: 'IAMGRUPolicy_dynamic'
+        policy: 'IAMGRUPolicy'
         load_policy: False
         framestack: False
         dset_size: 0

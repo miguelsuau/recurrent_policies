@@ -335,12 +335,12 @@ class IAMGRUPolicy_dynamic(nn.Module):
                 )
 
         self.query = nn.Linear(obs_size, attention_size)
-        self.key = nn.Linear(1, 1)
+        self.key = nn.Linear(1, attention_size)
         # self.key = nn.Linear(obs_size, attention_size)
     
         self.tanh = nn.Tanh()
 
-        self.attention = nn.Linear(1, 1)
+        self.attention = nn.Linear(attention_size, 1)
 
         # self.attention = nn.Sequential(
         #     # nn.Linear(obs_size, attention_size),
@@ -511,7 +511,6 @@ class IAMGRUPolicy_dynamic(nn.Module):
         attention_weights = self.attention(context).squeeze(-1)
         attention_weights = self.softmax(attention_weights/self.temperature)
         dset = torch.sum(attention_weights*obs, dim=-1, keepdim=True)
-
         # # attention
         # query_out = self.query(torch.swapaxes(self.hidden_memory, 0, 1))
         # key_out = self.key(obs)

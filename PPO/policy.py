@@ -342,13 +342,13 @@ class IAMGRUPolicy_dynamic(nn.Module):
 
         self.attention = nn.Linear(attention_size, 1)
 
-        # self.attention = nn.Sequential(
-        #     # nn.Linear(obs_size, attention_size),
-        #     # nn.Tanh(),
-        #     # nn.Linear(attention_size, attention_size),
-        #     # nn.Tanh(),
-        #     nn.Linear(attention_size, 1),
-        # )
+        self.attention = nn.Sequential(
+            nn.Linear(obs_size, attention_size),
+            nn.Tanh(),
+            # nn.Linear(attention_size, attention_size),
+            # nn.Tanh(),
+            nn.Linear(attention_size, 1),
+        )
         self.temperature = temperature
         self.softmax = nn.Softmax(dim=-1)
         # self.attention = nn.MultiheadAttention(2, 2, kdim=1, vdim=1, batch_first=True)
@@ -386,14 +386,14 @@ class IAMGRUPolicy_dynamic(nn.Module):
         # dset = torch.sum(attention_weights*obs, dim=-1, keepdim=True)
 
         # manual attention
-        dset = obs[np.where(obs == -2)]
-        dset = np.append(dset, obs[np.where(obs == 2)])
-        if len(dset) > 0:
-            dset = torch.tensor(np.mean(dset)).view(-1,1,1).float()
-        else:
-            dset = torch.tensor([0]).view(-1,1,1).float()
+        # dset = obs[np.where(obs == -2)]
+        # dset = np.append(dset, obs[np.where(obs == 2)])
+        # if len(dset) > 0:
+        #     dset = torch.tensor(np.mean(dset, axis=2)).view(-1,1,1).float()
+        # else:
+        #     dset = torch.tensor([0]*obs.shape[0]).view(-1,1,1).float()
 
-        
+        dset = self.attention(obs)
 
         # attention
         # query_out = self.query(torch.swapaxes(self.hidden_memory, 0, 1))
@@ -464,12 +464,14 @@ class IAMGRUPolicy_dynamic(nn.Module):
             # attention_weights = self.attention(context).squeeze(-1)
             # attention_weights = self.softmax(attention_weights/self.temperature)
             # dset = torch.sum(attention_weights*obs[:,t].unsqueeze(1), dim=-1, keepdim=True)
-            dset = obs[:,t][np.where(obs[:,t] == -2)]
-            dset = np.append(dset, obs[:,t][np.where(obs[:,t] == 2)])
-            if len(dset) > 0:
-                dset = torch.tensor(np.mean(dset)).view(-1,1,1).float()
-            else:
-                dset = torch.tensor([0]).view(-1,1,1).float()
+            # dset = obs[:,t][np.where(obs[:,t] == -2)]
+            # dset = np.append(dset, obs[:,t][np.where(obs[:,t] == 2)])
+            # if len(dset) > 0:
+            #     dset = torch.tensor(np.mean(dset)).view(-1,1,1).float()
+            # else:
+            #     dset = torch.tensor([0]*obs.shape[0]).view(-1,1,1).float()
+            
+            dset = self.attention(obs[:,t].unsqueeze(1))
             # attention
             # query_out = self.query(torch.swapaxes(hidden_memory, 0, 1))
             # key_out = self.key(obs[:,t].unsqueeze(1))
@@ -528,12 +530,13 @@ class IAMGRUPolicy_dynamic(nn.Module):
         # attention_weights = self.softmax(attention_weights/self.temperature)
         # dset = torch.sum(attention_weights*obs, dim=-1, keepdim=True)
 
-        dset = obs[np.where(obs == -2)]
-        dset = np.append(dset, obs[np.where(obs == 2)])
-        if len(dset) > 0:
-            dset = torch.tensor(np.mean(dset)).view(-1,1,1).float()
-        else:
-            dset = torch.tensor([0]).view(-1,1,1).float()
+        # dset = obs[np.where(obs == -2)]
+        # dset = np.append(dset, obs[np.where(obs == 2)])
+        # if len(dset) > 0:
+        #     dset = torch.tensor(np.mean(dset)).view(-1,1,1).float()
+        # else:
+        #     dset = torch.tensor([0]*obs.shape[0]).view(-1,1,1).float()
+        dset = self.attention(obs)
 
         # # attention
         # query_out = self.query(torch.swapaxes(self.hidden_memory, 0, 1))

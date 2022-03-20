@@ -340,14 +340,14 @@ class IAMGRUPolicy_dynamic(nn.Module):
     
         self.tanh = nn.Tanh()
 
-        self.attention = nn.Linear(attention_size, 2)
+        # self.attention = nn.Linear(attention_size, 2)
 
         self.attention = nn.Sequential(
             nn.Linear(obs_size, attention_size),
             nn.Tanh(),
             # nn.Linear(attention_size, attention_size),
             # nn.Tanh(),
-            nn.Linear(attention_size, 1),
+            nn.Linear(attention_size, 2),
         )
         self.temperature = temperature
         self.softmax = nn.Softmax(dim=-1)

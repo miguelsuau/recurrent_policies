@@ -343,9 +343,9 @@ class IAMGRUPolicy_dynamic(nn.Module):
         # self.attention = nn.Linear(attention_size, 2)
 
         self.attention = nn.Sequential(
-            nn.Linear(obs_size, attention_size),
-            nn.ReLU(),
-            nn.Linear(attention_size, 1),
+            # nn.Linear(obs_size, attention_size),
+            # nn.ReLU(),
+            nn.Linear(attention_size, 4),
             # nn.Tanh(),
             # nn.Linear(attention_size, 2),
         )
@@ -353,7 +353,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
         self.softmax = nn.Softmax(dim=-1)
         # self.attention = nn.MultiheadAttention(2, 2, kdim=1, vdim=1, batch_first=True)
 
-        self.gru = nn.GRU(1, hidden_memory_size, batch_first=True)
+        self.gru = nn.GRU(4, hidden_memory_size, batch_first=True)
 
         self.fnn2 = nn.Sequential(
                 nn.Linear(hidden_size + hidden_memory_size, hidden_size_2),

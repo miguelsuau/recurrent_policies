@@ -348,6 +348,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
             # nn.Linear(attention_size, attention_size),
             # nn.Tanh(),
             nn.Linear(attention_size, 2),
+            nn.Tanh()
         )
         self.temperature = temperature
         self.softmax = nn.Softmax(dim=-1)

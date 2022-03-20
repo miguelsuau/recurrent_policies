@@ -345,7 +345,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
         self.attention = nn.Sequential(
             # nn.Linear(obs_size, attention_size),
             # nn.ReLU(),
-            nn.Linear(attention_size, 4),
+            nn.Linear(obs_size, 4),
             # nn.Tanh(),
             # nn.Linear(attention_size, 2),
         )

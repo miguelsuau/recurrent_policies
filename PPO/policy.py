@@ -354,7 +354,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
         self.softmax = nn.Softmax(dim=-1)
         # self.attention = nn.MultiheadAttention(2, 2, kdim=1, vdim=1, batch_first=True)
 
-        self.gru = nn.GRU(2, hidden_memory_size, batch_first=True)
+        self.gru = nn.GRU(obs_size, hidden_memory_size, batch_first=True)
 
         self.fnn2 = nn.Sequential(
                 nn.Linear(hidden_size + hidden_memory_size, hidden_size_2),
@@ -394,7 +394,8 @@ class IAMGRUPolicy_dynamic(nn.Module):
         # else:
         #     dset = torch.tensor([0]*obs.shape[0]).view(-1,1,1).float()
 
-        dset = self.attention(obs)
+        # dset = self.attention(obs)
+        dset = obs
 
         # attention
         # query_out = self.query(torch.swapaxes(self.hidden_memory, 0, 1))
@@ -472,7 +473,9 @@ class IAMGRUPolicy_dynamic(nn.Module):
             # else:
             #     dset = torch.tensor([0]*obs.shape[0]).view(-1,1,1).float()
             
-            dset = self.attention(obs[:,t].unsqueeze(1))
+            # dset = self.attention(obs[:,t].unsqueeze(1))
+            dset = obs[:,t].unsqueeze(1)
+
             # attention
             # query_out = self.query(torch.swapaxes(hidden_memory, 0, 1))
             # key_out = self.key(obs[:,t].unsqueeze(1))
@@ -537,7 +540,8 @@ class IAMGRUPolicy_dynamic(nn.Module):
         #     dset = torch.tensor(np.mean(dset)).view(-1,1,1).float()
         # else:
         #     dset = torch.tensor([0]*obs.shape[0]).view(-1,1,1).float()
-        dset = self.attention(obs)
+        # dset = self.attention(obs)
+        dset = obs
 
         # # attention
         # query_out = self.query(torch.swapaxes(self.hidden_memory, 0, 1))

@@ -380,7 +380,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
         # query_out = self.query(obs)
         query_out = self.query(torch.swapaxes(self.hidden_memory, 0, 1))
         key_out = self.key(obs.unsqueeze(-1))
-        context = self.tanh(key_out + query_out)
+        context = self.tanh(key_out + query_out.unsqueeze(-2))
         attention_weights = self.attention(context).squeeze(-1)
         attention_weights = self.softmax(attention_weights/self.temperature)
         dset = torch.sum(attention_weights*obs, dim=-1, keepdim=True)
@@ -461,7 +461,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
 
             # query_out = self.query(obs[:,t].unsqueeze(1))
             key_out = self.key(obs[:,t].unsqueeze(1).unsqueeze(-1))
-            context = self.tanh(key_out + query_out)
+            context = self.tanh(key_out + query_out.unsqueeze(-2))
             attention_weights = self.attention(context).squeeze(-1)
             attention_weights = self.softmax(attention_weights/self.temperature)
             dset = torch.sum(attention_weights*obs[:,t].unsqueeze(1), dim=-1, keepdim=True)
@@ -530,7 +530,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
         
         query_out = self.query(torch.swapaxes(self.hidden_memory, 0, 1))
         key_out = self.key(obs.unsqueeze(-1))
-        context = self.tanh(key_out + query_out)
+        context = self.tanh(key_out + query_out.unsqueeze(-2))
         attention_weights = self.attention(context).squeeze(-1)
         attention_weights = self.softmax(attention_weights/self.temperature)
         dset = torch.sum(attention_weights*obs, dim=-1, keepdim=True)

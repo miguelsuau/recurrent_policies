@@ -8,8 +8,8 @@ parameters:
         num_actions: 6
         name: 'MiniGrid-RedBlueDoors-6x6-v0'
         hidden_size: 128
-        hidden_size_2: 256
-        hidden_memory_size: 32
+        hidden_size_2: 128
+        hidden_memory_size: 64
         seq_len: 32
         num_workers: 8
         epsilon: 0.1
@@ -18,7 +18,7 @@ parameters:
         policy: 'IAMGRUPolicy_dynamic'
         load_policy: False
         framestack: False
-        dset_size: 8
+        dset_size: 2
         dset: [49]
         total_steps: 1.0e+6
         attention_size: 128

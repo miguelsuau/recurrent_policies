@@ -18,7 +18,7 @@ parameters:
         policy: 'IAMGRUPolicy_dynamic'
         load_policy: False
         framestack: False
-        dset_size: 1
+        dset_size: 2
         dset: [49]
         total_steps: 1.0e+6
         attention_size: 128

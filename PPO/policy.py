@@ -333,9 +333,10 @@ class IAMGRUPolicy_dynamic(nn.Module):
                 nn.Linear(obs_size, hidden_size),
                 nn.ReLU()
                 )
-
-        self.query = nn.Linear(hidden_memory_size, attention_size)
-        self.key = nn.Linear(1, attention_size)
+        self.num_heads = dset_size
+        self.attention_size = attention_size
+        self.query = nn.Linear(hidden_memory_size, attention_size*self.num_heads)
+        self.key = nn.Linear(1, attention_size*self.num_heads)
         # self.key = nn.Linear(obs_size, attention_size)
     
         self.tanh = nn.Tanh()
@@ -349,7 +350,7 @@ class IAMGRUPolicy_dynamic(nn.Module):
         #     # nn.Linear(attention_size, 2),
         # )
         self.temperature = temperature
-        self.softmax = nn.Softmax(dim=-1)
+        self.softmax = nn.Softmax(dim=-3)
         # self.attention = nn.MultiheadAttention(2, 2, kdim=1, vdim=1, batch_first=True)
 
         self.gru = nn.GRU(dset_size, hidden_memory_size, batch_first=True)
@@ -380,11 +381,11 @@ class IAMGRUPolicy_dynamic(nn.Module):
         # query_out = self.query(obs)
         query_out = self.query(torch.swapaxes(self.hidden_memory, 0, 1))
         key_out = self.key(obs.unsqueeze(-1))
-        context = self.tanh(key_out + query_out.unsqueeze(-2))
-        attention_weights = self.attention(context).squeeze(-1)
-        attention_weights = self.softmax(attention_weights/self.temperature)
-        dset = torch.sum(attention_weights*obs, dim=-1, keepdim=True)
-
+        shape = obs.shape
+        context = self.tanh(key_out + query_out.unsqueeze(-2)).view(shape[0], shape[1], shape[2], self.num_heads, self.attention_size)
+        attention_weights = self.attention(context)
+        attention_weights = self.softmax(attention_weights/self.temperature).squeeze(-1)
+        dset = torch.sum(attention_weights.swapaxes(-1, -2)*obs.unsqueeze(-2), dim=-1)
         # manual attention
         # dset = obs[np.where(obs == -2)]
         # dset = np.append(dset, obs[np.where(obs == 2)])
@@ -461,10 +462,12 @@ class IAMGRUPolicy_dynamic(nn.Module):
 
             # query_out = self.query(obs[:,t].unsqueeze(1))
             key_out = self.key(obs[:,t].unsqueeze(1).unsqueeze(-1))
-            context = self.tanh(key_out + query_out.unsqueeze(-2))
-            attention_weights = self.attention(context).squeeze(-1)
-            attention_weights = self.softmax(attention_weights/self.temperature)
-            dset = torch.sum(attention_weights*obs[:,t].unsqueeze(1), dim=-1, keepdim=True)
+            shape = obs[:,t].unsqueeze(1).shape
+            context = self.tanh(key_out + query_out.unsqueeze(-2)).view(shape[0], shape[1], shape[2], self.num_heads, self.attention_size)
+            attention_weights = self.attention(context)
+            attention_weights = self.softmax(attention_weights/self.temperature).squeeze(-1)
+            dset = torch.sum(attention_weights.swapaxes(-1, -2)*obs[:,t].unsqueeze(1).unsqueeze(-2), dim=-1)
+
 
             # dset = obs[:,t][np.where(obs[:,t] == -2)]
             # dset = np.append(dset, obs[:,t][np.where(obs[:,t] == 2)])
@@ -527,13 +530,14 @@ class IAMGRUPolicy_dynamic(nn.Module):
         # attention_weights = self.attention(context).squeeze(-1)
         # dset = torch.sum(attention_weights*obs, dim=-1, keepdim=True)
         # query_out = self.query(obs)
-        
+
         query_out = self.query(torch.swapaxes(self.hidden_memory, 0, 1))
         key_out = self.key(obs.unsqueeze(-1))
-        context = self.tanh(key_out + query_out.unsqueeze(-2))
-        attention_weights = self.attention(context).squeeze(-1)
-        attention_weights = self.softmax(attention_weights/self.temperature)
-        dset = torch.sum(attention_weights*obs, dim=-1, keepdim=True)
+        shape = obs.shape
+        context = self.tanh(key_out + query_out.unsqueeze(-2)).view(shape[0], shape[1], shape[2], self.num_heads, self.attention_size)
+        attention_weights = self.attention(context)
+        attention_weights = self.softmax(attention_weights/self.temperature).squeeze(-1)
+        dset = torch.sum(attention_weights.swapaxes(-1, -2)*obs.unsqueeze(-2), dim=-1)
 
         # dset = obs[np.where(obs == -2)]
         # dset = np.append(dset, obs[np.where(obs == 2)])

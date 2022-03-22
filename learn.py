@@ -308,7 +308,7 @@ class Experiment(object):
                 rollout_step += 1
                 step += 1
                 episode_step += 1
-                episode_reward += np.mean(reward)
+                episode_reward += reward[0]
 
                 if done[0]:
                     self.print_results(episode_reward, episode_step, step, episode)

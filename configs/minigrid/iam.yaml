@@ -4,7 +4,7 @@ parameters:
         simulator: 'global'
         env: 'minigrid'
         obs_size: 49
-        rollout_steps: 16
+        rollout_steps: 32
         num_actions: 6
         name: 'MiniGrid-RedBlueDoors-6x6-v0'
         hidden_size: 128
@@ -12,7 +12,7 @@ parameters:
         hidden_memory_size: 64
         seq_len: 32
         num_workers: 8
-        epsilon: 0.1
+        epsilon: 0.01
         beta: 0.01
         render: False
         policy: 'IAMGRUPolicy_dynamic'
@@ -22,4 +22,4 @@ parameters:
         dset: [49]
         total_steps: 1.0e+6
         attention_size: 128
-        temperature: 1.0
+        temperature: 0.05

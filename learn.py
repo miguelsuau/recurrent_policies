@@ -92,10 +92,10 @@ class FeatureVectorWrapper(gym.core.ObservationWrapper):
 
     def observation(self, obs):
         # obs = obs[:,:,0].astype(int)
-        obs[np.where(obs==1)] = 0
-        obs[np.where(obs==2)] = 1
-        obs[np.where(obs==5)] = 2
-        obs[np.where(obs==6)] = -2
+        # obs[np.where(obs==1)] = 0
+        # obs[np.where(obs==2)] = 1
+        # obs[np.where(obs==5)] = 2
+        # obs[np.where(obs==6)] = -2
         obs = np.reshape(obs,-1)
         # dset = obs[np.where(obs == -2)]
         # dset = np.append(dset, obs[np.where(obs == 2)])
@@ -263,7 +263,7 @@ class Experiment(object):
                 # env = wrappers.TimeLimit(env, max_episode_steps=1280)
                 env = ImgObsWrapper(env) # Get rid of the 'mission' field
                 # env = wrappers.GrayScaleObservation(env, keep_dim=True) # Gray scale
-                # env = FeatureVectorWrapper(env)
+                env = FeatureVectorWrapper(env)
                 # env = wrappers.TimeLimit(env, max_episode_steps=5000)
                 env.seed(seed+np.random.randint(1.0e+6))
             else:

@@ -263,7 +263,7 @@ class Experiment(object):
                 # env = wrappers.TimeLimit(env, max_episode_steps=1280)
                 env = ImgObsWrapper(env) # Get rid of the 'mission' field
                 # env = wrappers.GrayScaleObservation(env, keep_dim=True) # Gray scale
-                env = FeatureVectorWrapper(env)
+                # env = FeatureVectorWrapper(env)
                 # env = wrappers.TimeLimit(env, max_episode_steps=5000)
                 env.seed(seed+np.random.randint(1.0e+6))
             else:

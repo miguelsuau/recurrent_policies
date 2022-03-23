@@ -18,6 +18,7 @@ import csv
 import os
 from copy import deepcopy
 import time
+from gym import spaces
 
 from gym_minigrid.wrappers import *
 from gym import wrappers
@@ -87,15 +88,15 @@ class FeatureVectorWrapper(gym.core.ObservationWrapper):
 
     def __init__(self, env):
         super().__init__(env)
-        obs_shape = env.observation_space.shape
-        self.observation_space = obs_shape[0]*obs_shape[1]
+        obs_shape = env.observation_space.shape 
+        self.observation_space = spaces.Box(low=0, high=1, shape=(obs_shape[0]*obs_shape[1]*obs_shape[2],))
 
     def observation(self, obs):
-        obs = obs[:,:,0].astype(int)
-        obs[np.where(obs==1)] = 0
-        obs[np.where(obs==2)] = 1
-        obs[np.where(obs==5)] = 2
-        obs[np.where(obs==6)] = -2
+        # obs = obs[:,:,0].astype(int)
+        # obs[np.where(obs==1)] = 0
+        # obs[np.where(obs==2)] = 1
+        # obs[np.where(obs==5)] = 2
+        # obs[np.where(obs==6)] = -2
         obs = np.reshape(obs,-1)
         # dset = obs[np.where(obs == -2)]
         # dset = np.append(dset, obs[np.where(obs == 2)])
@@ -229,6 +230,8 @@ class Experiment(object):
             [self.make_env(self.parameters['env'], env_id, i, self.seed) for i in range(self.parameters['num_workers'])],
             'spawn'
             ) 
+
+        env = VecNormalize(env, norm_reward=False, norm_obs=True)
 
         if self.parameters['framestack']:
             env = VecFrameStack(env, n_stack=self.parameters['n_stack'])

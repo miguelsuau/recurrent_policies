@@ -92,11 +92,11 @@ class FeatureVectorWrapper(gym.core.ObservationWrapper):
         self.observation_space = spaces.Box(low=0, high=1, shape=(obs_shape[0]*obs_shape[1]*obs_shape[2],))
 
     def observation(self, obs):
-        # obs = obs[:,:,0].astype(int)
-        # obs[np.where(obs==1)] = 0
-        # obs[np.where(obs==2)] = 1
-        # obs[np.where(obs==5)] = 2
-        # obs[np.where(obs==6)] = -2
+        obs = obs.astype(int)
+        # obs[0, np.where(obs[0]==1)] = 0
+        # obs[0, np.where(obs[0]==2)] = 1
+        obs[0, np.where(obs[0]==5)] = 3
+        obs[0, np.where(obs[0]==6)] = -3
         obs = np.reshape(obs,-1)
         # dset = obs[np.where(obs == -2)]
         # dset = np.append(dset, obs[np.where(obs == 2)])

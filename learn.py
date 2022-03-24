@@ -97,7 +97,7 @@ class FeatureVectorWrapper(gym.core.ObservationWrapper):
         obs[np.where(obs==2)] = 1
         obs[np.where(obs==5)] = 2
         obs[np.where(obs==6)] = -2
-        # obs = np.reshape(obs,-1)
+        obs = np.reshape(obs,-1)
         # dset = obs[np.where(obs == 5)]
         # dset = np.append(dset, obs[np.where(obs == 6)])
         # if len(dset) > 0:
@@ -231,7 +231,7 @@ class Experiment(object):
             'spawn'
             ) 
 
-        env = VecNormalize(env, norm_reward=False, norm_obs=True)
+        # env = VecNormalize(env, norm_reward=False, norm_obs=True)
 
         if self.parameters['framestack']:
             env = VecFrameStack(env, n_stack=self.parameters['n_stack'])

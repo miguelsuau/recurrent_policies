@@ -19,9 +19,10 @@ import os
 from copy import deepcopy
 import time
 from gym import spaces
-
 from gym_minigrid.wrappers import *
 from gym import wrappers
+
+from environments.minigrid.wrappers import FeatureVectorWrapper
 
 def generate_path(path):
     """
@@ -79,49 +80,6 @@ def add_mongodb_observer():
         print("ONLY FILE STORAGE OBSERVER ADDED")
         from sacred.observers import FileStorageObserver
         ex.observers.append(FileStorageObserver.create('saved_runs'))
-
-
-class FeatureVectorWrapper(gym.core.ObservationWrapper):
-    """
-    Use the image as the only observation output, no language/mission.
-    """
-
-    def __init__(self, env):
-        super().__init__(env)
-        obs_shape = env.observation_space.shape 
-        self.observation_space = spaces.Box(low=0, high=1, shape=(obs_shape[0]*obs_shape[1]*obs_shape[2],))
-
-    def observation(self, obs):
-        obs = obs[:,:,0].astype(int)
-        obs[np.where(obs==1)] = 0
-        obs[np.where(obs==2)] = 1
-        obs[np.where(obs==5)] = 2
-        obs[np.where(obs==6)] = -2
-        obs = np.reshape(obs,-1)
-        # dset = obs[np.where(obs == 5)]
-        # dset = np.append(dset, obs[np.where(obs == 6)])
-        # if len(dset) > 0:
-        #     dset = np.mean(dset)
-        # else:
-        #     dset = 0
-        # obs = np.append(obs, dset)
-        return obs
-
-    # def step(self, action):
-    #     obs, reward, done, info = self.env.step(action)
-    #     obs = self.observation(obs)
-
-    #     if tuple(self.agent_pos) == self.success_pos:
-    #         reward = max(0, 1 - 0.005 * self.step_count)
-    #         # reward = 1
-    #         done = True
-    #     if tuple(self.agent_pos) == self.failure_pos:
-    #         reward = 0
-    #         done = True
-            
-
-    #     return obs, reward, done, info
-
 
 class Experiment(object):
     """
@@ -209,20 +167,7 @@ class Experiment(object):
         
         self.seed = seed
         np.random.seed(seed)
-        # env = gym.make(id='MiniGrid-RedBlueDoors-6x6-v0')
-        # env = wrappers.TimeLimit(env, max_episode_steps=1280)
         self.env = self.create_env()
-        # self.env = wrappers.TimeLimit(self.env, max_episode_steps=5000)
-        # self.env._max_episode_steps = 5000
-        
-        # env = gym.make(self.parameters['name'])
-        # print(env)
-        # env = ImgObsWrapper(env) # Get rid of the 'mission' field
-        # env = wrappers.GrayScaleObservation(env, keep_dim=True) # Gray scale
-        # env = FeatureVectorWrapper(env)
-        # env.seed(seed+np.random.randint(1.0e+6))
-        # print(env)
-        # self.env = env
 
     def create_env(self):
         env_id = self.parameters['env'] + ':' + self.parameters['name'] + '-v0'
@@ -230,9 +175,6 @@ class Experiment(object):
             [self.make_env(self.parameters['env'], env_id, i, self.seed) for i in range(self.parameters['num_workers'])],
             'spawn'
             ) 
-
-        # env = VecNormalize(env, norm_reward=False, norm_obs=True)
-
         if self.parameters['framestack']:
             env = VecFrameStack(env, n_stack=self.parameters['n_stack'])
 
@@ -248,26 +190,9 @@ class Experiment(object):
         """
         def _init():
             if env_name == 'minigrid':
-                # gym.envs.register(
-                #     id='Long-v0',
-                #     entry_point='gym.envs.classic_control:MountainCarEnv',
-                #     max_episode_steps=500,
-                #     reward_threshold=-110.0,
-                # )
-                # gym.envs.register(
-                #     id='MiniGrid-RedBlueDoorsLong-6x6-v0',
-                #     entry_point='gym_minigrid.envs:RedBlueDoorEnv6x6',
-                #     tags={'wrapper_config.TimeLimit.max_episode_steps': 5000}
-                # )
-                # env = gym.make(id='MiniGrid-RedBlueDoors-6x6-v0')
-                env = gym.make(id='MiniGrid-MemoryS17Random-v0')
-                # env = gym.make(id='MiniGrid-MemoryS13-v0')
-                # env = RGBImgPartialObsWrapper(env)
-                # env = wrappers.TimeLimit(env, max_episode_steps=1280)
+                env = gym.make(id='minigrid:MiniGrid-MemoryS11-modified-v0')
                 env = ImgObsWrapper(env) # Get rid of the 'mission' field
-                # env = wrappers.GrayScaleObservation(env, keep_dim=True) # Gray scale
                 env = FeatureVectorWrapper(env)
-                # env = wrappers.TimeLimit(env, max_episode_steps=5000)
                 env.seed(seed+np.random.randint(1.0e+6))
             else:
                 env = gym.make(env_id, seed=seed+np.random.randint(1.0e+6))
@@ -356,7 +281,6 @@ class Experiment(object):
             n_steps += 1
             action, _, _ = agent.choose_action(obs)
             obs, reward, done, info = eval_env.step(action)
-            
             if self.parameters['render']:
                 eval_env.render()
                 time.sleep(.5)

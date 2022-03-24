@@ -92,19 +92,19 @@ class FeatureVectorWrapper(gym.core.ObservationWrapper):
         self.observation_space = spaces.Box(low=0, high=1, shape=(obs_shape[0]*obs_shape[1]*obs_shape[2],))
 
     def observation(self, obs):
-        obs = obs.astype(int)
-        obs[np.where(obs==1)] = 0
-        obs[np.where(obs==2)] = 1
-        obs[np.where(obs==5)] = 2
-        obs[np.where(obs==6)] = -2
-        obs = np.reshape(obs,-1)
-        # dset = obs[np.where(obs == -2)]
-        # dset = np.append(dset, obs[np.where(obs == 2)])
-        # if len(dset) > 0:
-        #     dset = np.mean(dset)
-        # else:
-        #     dset = 0
-        # obs = np.append(obs, dset)
+        obs = obs[:,:, 0].astype(int)
+        # obs[np.where(obs==1)] = 0
+        # obs[np.where(obs==2)] = 1
+        # obs[np.where(obs==5)] = 2
+        # obs[np.where(obs==6)] = -2
+        # obs = np.reshape(obs,-1)
+        dset = obs[np.where(obs == 5)]
+        dset = np.append(dset, obs[np.where(obs == 6)])
+        if len(dset) > 0:
+            dset = np.mean(dset)
+        else:
+            dset = 0
+        obs = np.append(obs, dset)
         return obs
 
     # def step(self, action):
@@ -231,7 +231,7 @@ class Experiment(object):
             'spawn'
             ) 
 
-        env = VecNormalize(env, norm_reward=False, norm_obs=True)
+        # env = VecNormalize(env, norm_reward=False, norm_obs=True)
 
         if self.parameters['framestack']:
             env = VecFrameStack(env, n_stack=self.parameters['n_stack'])

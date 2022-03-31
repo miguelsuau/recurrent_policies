@@ -175,6 +175,7 @@ class Experiment(object):
             [self.make_env(self.parameters['env'], env_id, i, self.seed) for i in range(self.parameters['num_workers'])],
             'spawn'
             ) 
+        env = VecNormalize(env, norm_reward=True, norm_obs=False)
         if self.parameters['framestack']:
             env = VecFrameStack(env, n_stack=self.parameters['n_stack'])
 
@@ -236,7 +237,7 @@ class Experiment(object):
                 rollout_step += 1
                 step += 1
                 episode_step += 1
-                episode_reward += reward[0]
+                episode_reward += self.env.get_original_reward()[0]
 
                 if done[0]:
                     self.print_results(episode_reward, episode_step, step, episode)
@@ -280,13 +281,13 @@ class Experiment(object):
                 agent.reset_hidden_memory(done)
             n_steps += 1
             action, _, _ = agent.choose_action(obs)
-            obs, reward, done, info = eval_env.step(action)
+            obs, _, done, info = eval_env.step(action)
             if self.parameters['render']:
                 eval_env.render()
                 time.sleep(.5)
             # print(obs)
             # breakpoint()
-            reward_sum += reward
+            reward_sum += eval_env.get_original_reward()
             for i, d in enumerate(done):
                 if d:
                     episode_rewards.append(reward_sum[i])

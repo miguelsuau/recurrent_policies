@@ -285,7 +285,7 @@ class MiniWarehouse(gym.Env):
                 #     reward = 1.0    
                 # else:
                 #     reward = 0.3
-                reward = item_waiting_times[index]/max(item_waiting_times)*0.25
+                reward = item_waiting_times[index]/max(item_waiting_times)#*0.25
                 # reward = 1.0
                 # self.items.remove(item)
                 # reward += 10

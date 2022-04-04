@@ -22,7 +22,7 @@ from gym import spaces
 # from gym_minigrid.wrappers import *
 from gym import wrappers
 
-from environments.minigrid.wrappers import FeatureVectorWrapper
+# from environments.minigrid.wrappers import FeatureVectorWrapper
 
 def generate_path(path):
     """

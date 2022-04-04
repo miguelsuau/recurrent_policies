@@ -19,7 +19,7 @@ import os
 from copy import deepcopy
 import time
 from gym import spaces
-from gym_minigrid.wrappers import *
+# from gym_minigrid.wrappers import *
 from gym import wrappers
 
 from environments.minigrid.wrappers import FeatureVectorWrapper

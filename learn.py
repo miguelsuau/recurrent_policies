@@ -115,7 +115,7 @@ class Experiment(object):
                 dset_size=self.parameters['dset_size']
                 ) 
         elif self.parameters['policy'] == 'IAMGRUPolicy':
-            policy = IAMGRUPolicy_separate(self.parameters['obs_size'], 
+            policy = IAMGRUPolicy(self.parameters['obs_size'], 
                 self.parameters['num_actions'], 
                 self.parameters['hidden_size'],
                 self.parameters['hidden_size_2'],

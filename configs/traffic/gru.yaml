@@ -17,3 +17,4 @@ parameters:
         policy: 'GRUPolicy'
         load_policy: False
         framestack: False
+        total_steps: 1.0e+6

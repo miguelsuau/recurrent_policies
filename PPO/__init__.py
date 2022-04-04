@@ -1,2 +1,2 @@
 from PPO.agent import Agent
-from PPO.policy import GRUPolicy, IAMGRUPolicy_dynamic, FNNPolicy, IAMGRUPolicy, LSTMPolicy, IAMLSTMPolicy
+from PPO.policy import GRUPolicy, IAMGRUPolicy_dynamic, FNNPolicy, IAMGRUPolicy, LSTMPolicy, IAMLSTMPolicy, IAMGRUPolicy_separate

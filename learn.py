@@ -1,5 +1,6 @@
 from logging import INFO
 from PPO.agent import Agent
+from PPO.other_policies import IAMGRUPolicy_separate
 import numpy as np
 import os
 import yaml
@@ -7,7 +8,7 @@ import os
 import sys
 sys.path.append("..")
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize, VecFrameStack
-from PPO import Agent, FNNPolicy, GRUPolicy, IAMGRUPolicy_dynamic, IAMGRUPolicy, LSTMPolicy, IAMLSTMPolicy
+from PPO import Agent, FNNPolicy, GRUPolicy, IAMGRUPolicy_dynamic, IAMGRUPolicy, LSTMPolicy, IAMLSTMPolicy, IAMGRUPolicy_separate
 import gym
 import sacred
 from sacred.observers import MongoObserver
@@ -114,7 +115,7 @@ class Experiment(object):
                 dset_size=self.parameters['dset_size']
                 ) 
         elif self.parameters['policy'] == 'IAMGRUPolicy':
-            policy = IAMGRUPolicy(self.parameters['obs_size'], 
+            policy = IAMGRUPolicy_separate(self.parameters['obs_size'], 
                 self.parameters['num_actions'], 
                 self.parameters['hidden_size'],
                 self.parameters['hidden_size_2'],

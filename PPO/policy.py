@@ -2,7 +2,7 @@ import sys
 sys.path.append("..") 
 import torch
 from torch import nn
-from torch.distributions import Categorical
+from torch.distributions import Categorical, Normal, MultivariateNormal
 import numpy as np
 
 NUM_FILTERS = [64, 64, 32]
@@ -22,17 +22,25 @@ class CNN(nn.Module):
         
 class GRUPolicy(nn.Module):
 
-    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers):
+    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, continuous_actions, action_min, action_max):
         super(GRUPolicy, self).__init__()
+
+        self.continuous = continuous_actions
         self.num_workers = num_workers
+        self.action_min = action_min
+        self.action_max = action_max
         self.recurrent = True
         self.gru = nn.GRU(obs_size, hidden_size, batch_first=True)
         self.fnn = nn.Sequential(
                 nn.Linear(hidden_size, hidden_size_2),
                 nn.ReLU()
                 )
-        self.actor = nn.Linear(hidden_size_2, action_size)
+        if self.continuous:    
+            self.actor = nn.Linear(hidden_size_2, 2*action_size)
+        else:
+            self.actor = nn.Linear(hidden_size_2, action_size)
         self.critic = nn.Linear(hidden_size_2, 1)
+
         self.hidden_memory_size = hidden_size
         self.hidden_memory = torch.zeros(1, 
             self.num_workers,
@@ -43,8 +51,14 @@ class GRUPolicy(nn.Module):
 
         out, self.hidden_memory = self.gru(obs, self.hidden_memory)
         out = self.fnn(out)
+        
         logits = self.actor(out.flatten(end_dim=1))
-        action_dist = Categorical(logits=logits)
+        
+        if self.continuous:
+            action_dist = MultivariateNormal(logits[:len(logits)//2], torch.diag(logits[len(logits)//2:]))
+        else:
+            action_dist = Categorical(logits=logits)
+
         action = action_dist.sample()
         log_prob = action_dist.log_prob(action)
 
@@ -69,8 +83,13 @@ class GRUPolicy(nn.Module):
             hidden_memories.append(out)
         hidden_memories = torch.cat(hidden_memories, 1).flatten(end_dim=1)
         hidden_memories = self.fnn(hidden_memories)
-        log_probs = self.actor(hidden_memories)
-        action_dist = Categorical(logits=log_probs)
+        logits = self.actor(hidden_memories)
+
+        if self.continuous:
+            action_dist = MultivariateNormal(logits[:len(logits)//2], torch.diag(logits[len(logits)//2:]))
+        else:
+            action_dist = Categorical(logits=logits)
+
         log_prob =  action_dist.log_prob(action)
         entropy = action_dist.entropy()
 
@@ -94,10 +113,15 @@ class GRUPolicy(nn.Module):
         
 class FNNPolicy(nn.Module):
 
-    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers):
+    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, continuous_actions, action_min, action_max):
         super(FNNPolicy, self).__init__()
         self.num_workers = num_workers
         self.recurrent = False
+        self.continuous = continuous_actions
+        self.action_min = action_min
+        self.action_max = action_max
+        self.action_size = action_size
+
         if isinstance(obs_size, list):
             self.cnn = CNN(obs_size)
             self.image = True
@@ -111,8 +135,16 @@ class FNNPolicy(nn.Module):
             nn.Linear(hidden_size, hidden_size_2),
             nn.ReLU()
             )
-        self.actor = nn.Linear(hidden_size_2, action_size)
+
+
+        if self.continuous:
+            self.actor = nn.Linear(hidden_size_2, 2*action_size)
+        else:
+            self.actor = nn.Linear(hidden_size_2, action_size)
+
         self.critic = nn.Linear(hidden_size_2, 1)
+
+        self.softplus = nn.Softplus()
 
     
     def forward(self, obs):
@@ -125,7 +157,21 @@ class FNNPolicy(nn.Module):
         out = self.fnn2(feature_vector)
         
         logits = self.actor(out)
-        action_dist = Categorical(logits=logits)
+
+        if self.continuous:
+            if self.action_size > 1:
+                mean = logits[:,:,:self.action_size]
+                covariance = torch.diag(torch.exp(torch.clip(logits[:,:,self.action_size:], min=-20, max=2)))
+                action_dist = MultivariateNormal(mean, covariance)
+            else:
+                mean = torch.clamp(logits[:,:,0], min=self.action_min, max=self.action_max)
+                # mean = logits[:,:,0]
+                # covariance = torch.clamp(logits[:,:,1], min=1.0e-3, max=5)
+                covariance = self.softplus(torch.clamp(logits[:,:,1], max=2))
+                action_dist = Normal(mean, covariance)
+        else:
+            action_dist = Categorical(logits=logits)
+
         action = action_dist.sample()
         log_prob = action_dist.log_prob(action)
         value = self.critic(out)
@@ -140,11 +186,23 @@ class FNNPolicy(nn.Module):
         else:
             feature_vector = self.fnn(obs) 
         out = self.fnn2(feature_vector).flatten(end_dim=1)
-        log_probs = self.actor(out)
-        action_dist = Categorical(logits=log_probs)
+        logits = self.actor(out)
+
+        if self.continuous:
+            if self.action_size > 1:
+                mean = logits[:,:self.action_size]
+                covariance = torch.diag(torch.clip(logits[:,self.action_size:], min=1.0e-5, max=1))
+                action_dist = MultivariateNormal(mean, covariance)
+            else:
+                mean = torch.clamp(logits[:,0], min=self.action_min, max=self.action_max)
+                # mean = logits[:,0]
+                covariance = self.softplus(torch.clamp(logits[:,1], max=2))
+                action_dist = Normal(mean, covariance)
+        else:
+            action_dist = Categorical(logits=logits)
+
         log_prob =  action_dist.log_prob(action)
         entropy = action_dist.entropy()
-
         value = self.critic(out)
         return value, log_prob, entropy
 

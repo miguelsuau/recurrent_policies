@@ -59,7 +59,7 @@ class Agent(object):
         with torch.no_grad():
             obs = torch.FloatTensor(obs).unsqueeze(1)
             action, value, log_prob = self.policy(obs)
-            return action.flatten(), value, log_prob
+            return action.flatten().detach().numpy(), value.flatten().detach().numpy(), log_prob.flatten().detach().numpy()
 
     def add_to_memory(
         self, prev_obs, action, reward, done, value, 
@@ -67,12 +67,12 @@ class Agent(object):
         ):
 
         self.buffer['obs'].append(prev_obs)
-        self.buffer['actions'].append(action.flatten().detach().numpy())
+        self.buffer['actions'].append(action)
         self.buffer['rewards'].append(reward)
         self.buffer['dones'].append(done)
         self.buffer['masks'].append([1-d for d in done])
-        self.buffer['values'].append(value.flatten().detach().numpy())
-        self.buffer['log_probs'].append(log_probs.flatten().detach().numpy())
+        self.buffer['values'].append(value)
+        self.buffer['log_probs'].append(log_probs)
         if self.recurrent_policy:
             if 'GRU' in self.policy.get_architecture():
                 self.buffer['hidden_memories'].append(hidden_memory.squeeze(0).detach().numpy())

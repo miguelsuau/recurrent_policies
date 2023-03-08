@@ -22,7 +22,7 @@ class CNN(nn.Module):
         
 class GRUPolicy(nn.Module):
 
-    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, continuous_actions, action_min, action_max):
+    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, continuous_actions=False, action_min=0, action_max=0):
         super(GRUPolicy, self).__init__()
 
         self.continuous = continuous_actions
@@ -113,7 +113,7 @@ class GRUPolicy(nn.Module):
         
 class FNNPolicy(nn.Module):
 
-    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, continuous_actions, action_min, action_max):
+    def __init__(self, obs_size, action_size, hidden_size, hidden_size_2, num_workers, continuous_actions=False, action_min=0, action_max=0):
         super(FNNPolicy, self).__init__()
         self.num_workers = num_workers
         self.recurrent = False
